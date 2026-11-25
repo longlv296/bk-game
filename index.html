@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bách khoa game chiến thuật</title>
+<meta name="description" content="Tra cứu Red Alert 2 và Đế Chế (Age of Empires I & II) bằng tiếng Việt: quân lính, công trình, cách chơi, phím tắt.">
+<meta property="og:title" content="Bách khoa game chiến thuật">
+<meta property="og:description" content="Red Alert 2 và Đế Chế I & II: quân lính, công trình, cách chơi, phím tắt.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap">
+<style>
+:root { color-scheme: dark; --bg: #0e0f11; --panel: #17191c; --line: #2c3036; --fg: #e8e6e1; --muted: #9a9ea6; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif; line-height: 1.55; }
+.wrap {
+  max-width: 900px; margin: 0 auto; min-height: 100svh; display: grid; align-content: center; gap: 24px;
+  padding: 40px max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px));
+}
+h1 { margin: 0; font-size: clamp(28px, 6vw, 44px); line-height: 1.1; text-wrap: balance; }
+p { margin: 0; color: var(--muted); max-width: 60ch; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+a.card {
+  --c: #4a90ff; display: grid; gap: 6px; padding: 20px; text-decoration: none; color: inherit;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 14%, var(--panel)), var(--panel));
+  border: 1px solid var(--line); border-top: 3px solid var(--c);
+}
+a.card.aoe { --c: #d9a441; }
+a.card:hover { border-color: var(--c); }
+a.card:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+.card b { font-size: 22px; }
+.card span { color: var(--muted); font-size: 14px; }
+.card i { font-style: normal; color: var(--c); font-size: 14px; font-weight: 600; }
+footer { color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Bách khoa game chiến thuật</h1>
+  <p>Tra cứu bằng tiếng Việt: công trình, quân lính, cách chơi, điểm mạnh yếu và phím tắt. Dùng tốt trên điện thoại.</p>
+  <div class="cards">
+    <a class="card" href="ra2/"><b>Red Alert 2</b><span>Đồng Minh, Liên Xô, Yuri, công trình Tech · Yuri's Revenge</span><i>Mở bách khoa →</i></a>
+    <a class="card aoe" href="aoe/"><b>Đế Chế I &amp; II</b><span>Age of Empires I (Rise of Rome) và II (The Conquerors) · 34 nền văn minh</span><i>Mở bách khoa →</i></a>
+  </div>
+  <footer>Trang của người hâm mộ, không liên quan tới EA, Westwood, Microsoft hay Ensemble Studios. Ảnh lấy từ C&amp;C Wiki và Age of Empires Wiki (fandom.com), bản quyền thuộc chủ sở hữu.</footer>
+</div>
+</body>
+</html>

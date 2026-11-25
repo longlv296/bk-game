@@ -1,0 +1,961 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bách khoa Đế Chế · Age of Empires I &amp; II</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Cách lên đời, điểm mạnh yếu, cách chơi từng nền văn minh, quân lính và phím tắt Age of Empires I & II.">
+<meta property="og:title" content="Bách khoa Đế Chế · Age of Empires I & II">
+<meta property="og:description" content="Cách lên đời, mạnh yếu từng nền văn minh, quân lính và phím tắt Đế Chế I & II.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
+<style>
+/* Bố cục giống bản RA2: tab trò chơi, mục lên đời, lưới nền văn minh, bảng chi tiết, bộ lọc, lưới thẻ. Chỉ dùng giao diện tối. */
+:root {
+  color-scheme: dark;
+  --bg: #100e0b;
+  --panel: #19160f;
+  --panel-2: #221d14;
+  --line: #3a3226;
+  --fg: #ece4d4;
+  --muted: #a39780;
+  --aoe1: #d9a441;
+  --aoe2: #d0503f;
+  --accent: var(--aoe1);
+  --food: #e0735f; --wood: #b98a52; --gold: #e8c547; --stone: #a9adb3;
+  --f-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --f-body: "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.55; margin: 0; }
+body[data-g="aoe2"] { --accent: var(--aoe2); }
+.wrap {
+  max-width: 1240px; margin: 0 auto; padding-block: 28px 60px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 22px;
+}
+header { display: grid; gap: 6px; }
+.eyebrow { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); font-weight: 600; transition: color .3s; }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(32px, 5.5vw, 52px); line-height: 1; margin: 0; text-wrap: balance; }
+.lede { color: var(--muted); margin: 0; max-width: 72ch; }
+
+/* tab trò chơi */
+.tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.tab {
+  --c: var(--aoe1); appearance: none; border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel)); color: var(--fg);
+  padding: 12px 16px; text-align: left; cursor: pointer; display: grid; gap: 2px; position: relative; font-family: var(--f-body);
+}
+.tab[data-g="aoe2"] { --c: var(--aoe2); }
+.tab .tn { font-family: var(--f-display); font-weight: 700; font-size: 24px; line-height: 1.1; }
+.tab .ts { font-size: 12px; color: var(--muted); }
+.tab::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--c); opacity: .35; transition: opacity .2s; }
+.tab:hover::after { opacity: .7; }
+.tab[aria-selected="true"] { border-color: var(--c); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 22%, var(--panel-2)), var(--panel)); }
+.tab[aria-selected="true"]::after { opacity: 1; }
+:is(.tab, .chip, input, .civ, a, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.section-h {
+  font-family: var(--f-display); font-size: 22px; font-weight: 700; color: var(--accent);
+  margin: 10px 0 0; display: flex; align-items: center; gap: 12px; line-height: 1.2;
+}
+.section-h::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.note { font-size: 14px; color: var(--muted); margin: 0; max-width: 85ch; }
+.note strong { color: var(--fg); font-weight: 600; }
+
+/* lên đời */
+.ages { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); }
+@media (max-width: 860px) { .ages { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 460px) { .ages { grid-template-columns: 1fr; } }
+.age { padding: 14px 16px; display: grid; gap: 6px; align-content: start; background: var(--panel); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); min-width: 0; }
+.age .an { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.age h3 { margin: 0; font-family: var(--f-display); font-size: 24px; line-height: 1.1; }
+.age .en { color: var(--muted); font-size: 13px; }
+.age .req { font-size: 13px; }
+.age .req b { font-weight: 600; }
+.age ul { margin: 0; padding-left: 18px; font-size: 13px; color: var(--muted); display: grid; gap: 3px; }
+
+.guide { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 10px; }
+.gbox { background: var(--panel); border: 1px solid var(--line); padding: 14px 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.gbox h3 { margin: 0; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.gbox h3::before { content: ""; width: 8px; height: 8px; background: var(--k, var(--accent)); flex: none; }
+.gbox.good { --k: #79c46a; } .gbox.bad { --k: #e8735f; } .gbox.play { --k: var(--accent); } .gbox.counter { --k: var(--gold); } .gbox.age-k { --k: #8fb3e0; }
+.gbox ul, .gbox ol { margin: 0; padding-left: 18px; display: grid; gap: 5px; font-size: 14px; }
+.gbox ol li::marker { color: var(--accent); font-weight: 700; }
+.gbox li b { font-weight: 600; }
+
+/* nền văn minh */
+.civs { display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); gap: 8px; }
+.civ {
+  appearance: none; font: inherit; color: inherit; text-align: left; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--line); padding: 8px 10px;
+  display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: center; min-width: 0;
+}
+.civ:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
+.civ[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, var(--panel)); }
+.emb { width: 40px; height: 40px; object-fit: contain; display: block; }
+.emb.fb { display: grid; place-items: center; background: var(--panel-2); border: 1px solid var(--line); font-family: var(--f-display); font-weight: 700; font-size: 20px; color: var(--accent); }
+.civ b { font-weight: 600; font-size: 14px; display: block; line-height: 1.25; }
+.civ span { font-size: 12px; color: var(--muted); display: block; line-height: 1.35; }
+.civ .x { color: var(--accent); }
+
+.civpanel { border: 1px solid var(--accent); background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 10%, var(--panel)), var(--panel) 160px); padding: 16px; display: grid; gap: 14px; }
+.cp-head { display: grid; grid-template-columns: 64px 1fr auto; gap: 14px; align-items: center; }
+.cp-head .emb { width: 64px; height: 64px; }
+.cp-head h3 { margin: 0; font-family: var(--f-display); font-size: 30px; line-height: 1.05; }
+.cp-head .sub { color: var(--muted); font-size: 13px; }
+.cp-close { appearance: none; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); font: inherit; font-size: 13px; padding: 6px 12px; cursor: pointer; align-self: start; }
+.cp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }
+.facts { display: grid; gap: 6px; font-size: 14px; }
+.facts dt { color: var(--muted); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; margin-top: 4px; }
+.facts dd { margin: 0; }
+.facts ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.hint { color: var(--muted); font-size: 14px; border: 1px dashed var(--line); padding: 14px 16px; margin: 0; }
+
+/* bộ lọc */
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip {
+  appearance: none; font: inherit; font-size: 13px; cursor: pointer; border: 1px solid var(--line);
+  background: var(--panel); color: var(--fg); padding: 6px 12px; display: inline-flex; gap: 6px; align-items: center;
+}
+.chip .n { color: var(--muted); font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #17120a; }
+.chip[aria-pressed="true"] .n { color: rgba(23,18,10,.75); }
+.search { flex: 1 1 220px; min-width: 0; }
+.search input { width: 100%; font: inherit; font-size: 14px; color: var(--fg); background: var(--panel); border: 1px solid var(--line); padding: 7px 12px; }
+.search input::placeholder { color: var(--muted); }
+.toggle { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); cursor: pointer; }
+.toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
+.count { font-size: 13px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+
+/* thẻ */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+@media (max-width: 420px) { .grid { grid-template-columns: 1fr; } }
+.card { border: 1px solid var(--line); background: var(--panel); padding: 14px; display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 14px; align-content: start; }
+.card.uu { border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); }
+.card.na { opacity: .45; }
+.cameo { width: 92px; height: 92px; border: 1px solid var(--line); background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--accent) 22%, var(--panel-2)), var(--bg) 85%); display: grid; place-items: center; overflow: hidden; color: var(--accent); }
+.cameo svg { width: 70%; height: 70%; }
+.cameo.real { cursor: zoom-in; padding: 0; appearance: none; }
+.cameo.real img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.cameo.real:hover { border-color: var(--accent); }
+.cost { margin-top: 6px; display: grid; gap: 2px; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.cost span { display: flex; align-items: center; gap: 6px; }
+.cost i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+.cost .free { color: var(--muted); font-weight: 500; font-size: 12px; }
+.body { display: grid; gap: 6px; min-width: 0; align-content: start; }
+.nm { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.nm h3 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: 21px; line-height: 1.1; }
+.nm .vn { font-size: 13px; color: var(--muted); }
+.line { font-size: 12px; color: var(--muted); }
+.line b { color: var(--fg); font-weight: 500; }
+.line s { opacity: .6; }
+.badges { display: flex; flex-wrap: wrap; gap: 4px; }
+.b { font-size: 11px; line-height: 1; padding: 4px 6px; border: 1px solid var(--line); color: var(--muted); font-weight: 600; letter-spacing: .03em; }
+.b.age { color: var(--fg); }
+.b.ex { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); color: var(--accent); }
+.b.uu { border-color: var(--accent); color: var(--fg); background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.b.na { border-color: #e8735f; color: #f0a08f; }
+.b.part { border-color: var(--gold); color: var(--gold); }
+.desc { margin: 0; font-size: 14px; }
+.kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; font-size: 13px; margin: 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; }
+.kv dd.good { color: #9ad38d; }
+.kv dd.bad { color: #f0a08f; }
+.more { font-size: 12px; color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); justify-self: start; }
+.more:hover { color: var(--accent); border-color: var(--accent); }
+.empty { padding: 40px 16px; text-align: center; color: var(--muted); border: 1px dashed var(--line); }
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; display: grid; gap: 6px; max-width: 92ch; }
+
+#lb { border: 1px solid var(--line); background: var(--panel); color: var(--fg); padding: 0; max-width: min(560px, calc(100vw - 32px)); width: 100%; }
+#lb::backdrop { background: rgba(0,0,0,.75); }
+#lb .lbin { display: grid; gap: 12px; padding: 16px; }
+#lb .lbimg { background: var(--bg); display: grid; place-items: center; min-height: 160px; }
+#lb .lbimg img { max-height: 60vh; width: auto; max-width: 100%; }
+#lb .lbrow { display: flex; gap: 12px; align-items: center; }
+#lb h3 { margin: 0; font-family: var(--f-display); font-size: 26px; }
+#lb .x { margin-left: auto; appearance: none; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); font: inherit; padding: 6px 12px; cursor: pointer; }
+/* phím tắt */
+.keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }
+.kbox { background: var(--panel); border: 1px solid var(--line); padding: 14px 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.kbox h4 { margin: 0; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; color: var(--accent); }
+.kbox .kn { margin: 0; font-size: 13px; color: var(--muted); }
+.kl { display: grid; grid-template-columns: fit-content(46%) minmax(0, 1fr); gap: 5px 12px; margin: 0; font-size: 14px; align-items: baseline; }
+.kl dt { line-height: 1.9; }
+.kl dd { margin: 0; }
+kbd { white-space: nowrap; font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12px; padding: 2px 6px; border: 1px solid var(--line); border-bottom-width: 2px; background: var(--panel-2); color: var(--fg); border-radius: 3px; }
+.kv-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.home { font-size: 13px; color: var(--muted); text-decoration: none; justify-self: start; }
+.home:hover { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="home" href="../">← Bách khoa game</a>
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1 id="h1">Bách khoa Đế Chế</h1>
+    <p class="lede">Tra cứu cách lên đời, điểm mạnh, điểm yếu và cách chơi của từng nền văn minh, kèm toàn bộ công trình, quân lính, công thành và hải quân của Age of Empires I và Age of Empires II.</p>
+  </header>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+
+  <section style="display:grid;gap:12px">
+    <p class="note" id="gameNote"></p>
+    <h2 class="section-h">Cách lên đời</h2>
+    <div class="ages" id="ages"></div>
+    <div class="guide" id="gguide"></div>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <h2 class="section-h" id="civHead">Chọn nền văn minh</h2>
+    <div class="civs" id="civs"></div>
+    <div id="civPanel"></div>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <h2 class="section-h">Công trình &amp; quân lính</h2>
+    <div class="bar" id="cats"></div>
+    <div class="bar">
+      <label class="search"><input id="q" type="search" placeholder="Tìm theo tên: Hoplite, Knight, Trebuchet, Voi…" autocomplete="off"></label>
+      <label class="toggle"><input type="checkbox" id="exToggle" checked> <span id="exLabel"></span></label>
+    </div>
+    <div class="count" id="count"></div>
+    <div id="out" style="display:grid;gap:14px"></div>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <h2 class="section-h">Phím tắt</h2>
+    <div class="kv-tabs" id="keyTabs"></div>
+    <p class="note" id="keyNote"></p>
+    <div class="keys" id="keys"></div>
+  </section>
+
+  <footer>
+    <div>Bonus nền văn minh, giá tiền và điều kiện lên đời theo bản Definitive Edition hiện tại: Age of Empires DE (có Return of Rome) và Age of Empires II DE. Bản gốc 1997–2000 (Rise of Rome 1.0a, The Conquerors 1.0c) khác ở một số con số. Trang chỉ có 18 nền văn minh gốc của AoE II, chưa có các nền văn minh mới thêm trong bản DE.</div>
+    <div>Giá ghi trên thẻ là giá gốc của đơn vị đầu dòng, chưa tính bonus giảm giá của từng nền văn minh.</div>
+    <div>Phím tắt là phím mặc định, theo trang Hotkey của Age of Empires Wiki.</div>
+    <div>Ảnh và thông tin lấy từ Age of Empires Wiki (ageofempires.fandom.com), bản quyền thuộc Microsoft / Ensemble Studios / Forgotten Empires, lưu trong thư mục aoe-anh để xem offline. Bấm vào ảnh để phóng to.</div>
+  </footer>
+</div>
+
+<dialog id="lb"><div class="lbin">
+  <div class="lbrow"><div><h3 id="lbTitle"></h3><div id="lbSub" style="color:var(--muted);font-size:13px"></div></div><button class="x" id="lbClose">Đóng</button></div>
+  <div class="lbimg"><img id="lbArt" alt=""></div>
+  <a class="more" id="lbLink" target="_blank" rel="noopener">Mở trang trên Age of Empires Wiki ↗</a>
+</div></dialog>
+
+<script>
+const GAMES = {
+  aoe1: {
+    name: "Đế Chế I", en: "Age of Empires I", sub: "16 nền văn minh · có Rise of Rome",
+    eyebrow: "Age of Empires · Rise of Rome · Definitive Edition",
+    ex: "Gồm Rise of Rome",
+    note: "<strong>Đế Chế I</strong> (1997, bản mở rộng Rise of Rome 1998) không có đơn vị riêng. Các nền văn minh khác nhau ở <strong>bonus</strong> và ở <strong>cây công nghệ bị cắt</strong>: thiếu dòng quân nào là không có lối đánh đó. Vì vậy chọn nền văn minh cũng là chọn lối đánh.",
+    ages: [
+      { n: "Đời 1", vn: "Đồ Đá", en: "Stone Age", req: "Khởi đầu trận", unl: ["Nhà, Kho lương, Kho chứa, Trại lính, Bến tàu", "Dân, Clubman, tàu cá"] },
+      { n: "Đời 2", vn: "Công Cụ", en: "Tool Age", req: "<b>500 thức ăn</b> · 2 công trình đời Đá (Trại lính, Kho lương, Kho chứa, Bến tàu) · 2:00", unl: ["Trường bắn, Chuồng ngựa, Chợ, Ruộng", "Tháp canh, tường, Scout, Bowman, Slinger", "Nâng Axeman, Woodworking, Gold Mining"] },
+      { n: "Đời 3", vn: "Đồ Đồng", en: "Bronze Age", req: "<b>800 thức ăn</b> · 2 công trình đời Công Cụ (Trường bắn, Chợ, Chuồng ngựa) · 2:20", unl: ["Đền thờ, Trung tâm chính quyền, Học viện, Xưởng công thành", "Kiếm sĩ, Hoplite, Cavalry, Chariot, Camel, Priest, Stone Thrower", "Nhà chính thứ hai (cần Trung tâm chính quyền)"] },
+      { n: "Đời 4", vn: "Đồ Sắt", en: "Iron Age", req: "<b>1.000 thức ăn + 800 vàng</b> · 2 công trình đời Đồng (Học viện, Trung tâm chính quyền, Xưởng công thành, Đền thờ) · 2:40", unl: ["Voi chiến, Horse Archer, Ballista, Fire Galley, Kỳ quan", "Nâng cấp cuối: Centurion, Legionary, Heavy Catapult, Cataphract…"] },
+    ],
+    build: [
+      "Ra dân liên tục từ Nhà chính, không để Nhà chính đứng không. Dân đầu xây nhà (mỗi nhà +4 dân)",
+      "Xây <b>Kho lương</b> cạnh bụi quả và <b>Kho chứa</b> cạnh rừng: vừa đủ 2 công trình để lên Công Cụ. Bản đồ có nước thì xây Bến tàu sớm, tàu cá là nguồn thức ăn chính",
+      "Chia dân: phần lớn ăn quả và săn (voi, hươu), 5–8 dân đốn gỗ. Khoảng 20–24 dân thì bấm lên Công Cụ",
+      "<b>Đời Công Cụ:</b> xây Chợ rồi Ruộng, nâng Woodworking. Từ đây chọn: <b>Tool rush</b> (Bowman, Axeman, Scout, Slinger) hoặc cho dân đào vàng, dồn thức ăn để lên Đồng nhanh",
+      "<b>Đời Đồng:</b> thời điểm mạnh nhất để đánh. Ra dòng chủ lực của nền văn minh (Chariot, Cavalry, Hoplite, Catapult, Priest…). Xây 2 công trình đời Đồng để chuẩn bị lên Sắt",
+      "<b>Đời Sắt:</b> nâng cấp cuối dòng rất đắt (Centurion, Heavy Horse Archer gần bằng giá một kỳ quan). Chỉ chọn 1–2 dòng và nâng hết",
+    ],
+    counter: [
+      "<b>Slinger</b> khắc mọi loại cung thủ và rẻ, không tốn gỗ",
+      "<b>Camel Rider</b> khắc kỵ binh, xe chiến (Chariot) và voi",
+      "<b>Priest</b> chuyển đổi voi và quân đắt tiền. <b>Chariot</b> và <b>Scythe Chariot</b> khó bị chuyển đổi, chuyên đi giết Priest",
+      "<b>Hoplite / Phalanx / Centurion</b> thắng mọi trận cận chiến nhưng chậm, thua cung thủ và Horse Archer",
+      "<b>Catapult</b> xóa cụm quân đứng sát và tháp. Kỵ binh nhanh lao vào giết Catapult",
+      "<b>Kiếm sĩ</b> (Legionary) phá nhà nhanh, nhưng thua Centurion và cung bắn xa",
+    ],
+    tips: [
+      "<b>Tháp sớm</b> (tower rush): Babylon, La Mã, Choson rất mạnh nhờ tháp rẻ hoặc tháp bền",
+      "<b>Tool rush</b> bằng Bowman bắn nhanh (Assyria), Scout (Shang, Yamato) hoặc Slinger để phá kinh tế đối phương",
+      "<b>Lên Đồng nhanh</b> rồi đánh Chariot Archer, Cavalry hoặc Hoplite. Đây là lối chơi phổ biến nhất",
+      "Bản đồ nước: hải quân quyết định trận. Ưu tiên Minoan, Phoenicia, Hittite, Carthage, Hy Lạp",
+    ],
+  },
+  aoe2: {
+    name: "Đế Chế II", en: "Age of Empires II", sub: "18 nền văn minh gốc · có The Conquerors",
+    eyebrow: "Age of Empires II · The Age of Kings · The Conquerors · Definitive Edition",
+    ex: "Gồm The Conquerors",
+    note: "<strong>Đế Chế II</strong> (1999, bản mở rộng The Conquerors 2000). Mỗi nền văn minh có <strong>đơn vị riêng</strong> ra ở Lâu đài, <strong>2 công nghệ riêng</strong> (một ở đời Lâu Đài, một ở đời Đế Quốc), <strong>bonus riêng</strong> và <strong>bonus đồng đội</strong> cho cả team.",
+    ages: [
+      { n: "Đời 1", vn: "Bóng Tối", en: "Dark Age", req: "Khởi đầu: Nhà chính, 3 dân, 1 Scout (Aztec, Maya có Eagle Scout)", unl: ["Nhà, Nhà xay, Trại gỗ, Trại mỏ, Trại lính, Bến tàu", "Dân, Militia, tàu cá, Loom"] },
+      { n: "Đời 2", vn: "Phong Kiến", en: "Feudal Age", req: "<b>500 thức ăn</b> · 2 công trình đời Bóng Tối (không tính Nhà) · 2:10", unl: ["Trường bắn, Chuồng ngựa, Lò rèn, Chợ, tháp canh, tường đá", "Man-at-Arms, Spearman, Archer, Skirmisher, Scout Cavalry", "Double-Bit Axe, Horse Collar, Wheelbarrow"] },
+      { n: "Đời 3", vn: "Lâu Đài", en: "Castle Age", req: "<b>800 thức ăn + 200 vàng</b> · 2 công trình đời Phong Kiến (Trường bắn, Chuồng ngựa, Lò rèn, Chợ) · 2:40", unl: ["Lâu đài (đơn vị riêng), Tu viện, Đại học, Xưởng công thành, Nhà chính thêm", "Knight, Crossbowman, Camel, Monk, Mangonel, Ram", "Công nghệ riêng thứ nhất, Heavy Plow, Hand Cart"] },
+      { n: "Đời 4", vn: "Đế Quốc", en: "Imperial Age", req: "<b>1.000 thức ăn + 800 vàng</b> · 2 công trình đời Lâu Đài hoặc 1 Lâu đài · 3:10", unl: ["Trebuchet, Bombard Cannon, Hand Cannoneer, Kỳ quan", "Champion, Paladin, Arbalester, Halberdier, Siege Onager", "Công nghệ riêng thứ hai"] },
+    ],
+    build: [
+      "6 dân đầu ăn cừu dưới Nhà chính, 2 dân đầu tiên xây 2 nhà. Scout đi tìm thêm cừu",
+      "Dân 7–10 xây Trại gỗ và đốn gỗ. Dân 11 xây Nhà xay cạnh bụi quả, thêm 3 dân hái quả",
+      "Dụ 2 con lợn rừng về Nhà chính cho dân ăn. Thêm dân gỗ, xây Trại lính (đủ 2 công trình để lên đời)",
+      "Khoảng 21–23 dân: nâng Loom rồi bấm lên Phong Kiến. Trong lúc chờ, chuyển dân sang gỗ để chuẩn bị ruộng",
+      "<b>Đời Phong Kiến:</b> đánh sớm bằng Scout, Archer hoặc Man-at-Arms. Hoặc xây Chợ + Lò rèn, đào vàng để lên Lâu Đài nhanh (fast castle, khoảng 27–30 dân)",
+      "<b>Đời Lâu Đài:</b> xây thêm 2–3 Nhà chính để tăng dân nhanh (boom), hoặc đánh ngay bằng Knight, Crossbowman, Mangonel, Ram. Xây Lâu đài để ra đơn vị riêng",
+      "<b>Đời Đế Quốc:</b> nâng cấp cuối dòng, dùng Trebuchet phá Lâu đài. Khi hết vàng thì chơi quân rẻ: Halberdier, Elite Skirmisher, Hussar",
+    ],
+    counter: [
+      "<b>Spearman → Pikeman → Halberdier</b> khắc kỵ binh, rẻ, không tốn vàng",
+      "<b>Kỵ binh</b> (Knight, Hussar) khắc cung thủ, công thành và Monk",
+      "<b>Cung thủ</b> khắc bộ binh và Spearman. <b>Skirmisher</b> khắc cung thủ, không tốn vàng",
+      "<b>Camel</b> khắc kỵ binh ngựa. <b>Huskarl, Eagle Warrior</b> khắc cung thủ",
+      "<b>Bộ binh</b> (Man-at-Arms, Champion) phá nhà tốt, thắng Spearman và Skirmisher",
+      "<b>Mangonel / Onager</b> xóa cụm cung thủ và bộ binh. <b>Ram</b> phá nhà, miễn nhiễm tên",
+      "<b>Monk</b> chuyển đổi quân chậm và đắt (voi, Paladin). Kỵ binh nhẹ và Eagle giết Monk",
+    ],
+    tips: [
+      "<b>Scout rush</b> (Phong Kiến): Mông Cổ, Frank, Hung, Ba Tư",
+      "<b>Archer rush</b>: Maya, Anh, Saracen, Triều Tiên",
+      "<b>Lên Lâu Đài nhanh</b> rồi đánh Knight hoặc boom: Frank, Teuton, Ba Tư, Trung Quốc",
+      "<b>Lên Đế Quốc nhanh</b> rồi đánh thuốc súng: Thổ Nhĩ Kỳ, Tây Ban Nha. <b>Bản đồ nước</b>: Viking, Nhật Bản, Triều Tiên, Byzantine",
+    ],
+  },
+};
+
+// AoE I: không có đơn vị riêng. miss = đơn vị/nâng cấp không có (tên tiếng Anh như trong game).
+const CIVS = {
+  aoe1: [
+    { id: "assyrians", n: "Assyria", en: "Assyrians", focus: "Cung thủ · Công thành",
+      bonus: ["Dân chạy nhanh hơn 10%", "Cung thủ bắn nhanh hơn 11% / 22% / 33% ở đời Công Cụ / Đồng / Sắt", "Nâng cấp vũ khí công thành rẻ hơn 50%"],
+      team: "Xưởng công thành làm việc nhanh hơn 20%",
+      miss: ["Slinger", "Improved Bowman", "Heavy Horse Archer", "Elephant Archer", "Scythe Chariot", "War Elephant", "Catapult Trireme", "Bronze Shield", "Nobility", "Architecture", "City Watch", "Aristocracy"],
+      good: ["Bowman và Chariot Archer bắn nhanh nhất game, Tool rush rất khó đỡ", "Dân chạy nhanh giúp khai thác và xây nhà nhanh", "Heavy Catapult nâng cấp rẻ, phá phòng thủ tốt ở đời Sắt"],
+      bad: ["Không có dòng Improved Bowman, Horse Archer không lên được Heavy", "Không có voi, không có Slinger", "Thiếu Architecture và Nobility nên nhà và kỵ binh yếu hơn về sau"],
+      play: ["Đời Công Cụ: 4–6 Bowman quấy dân gỗ và dân quả", "Lên Đồng: chủ lực Chariot Archer (không tốn vàng) kèm Stone Thrower", "Đời Sắt: Horse Archer, Heavy Catapult, Cataphract"],
+      age: "Tool rush bằng Bowman, hoặc lên Đồng nhanh với Chariot Archer" },
+    { id: "babylonians", n: "Babylon", en: "Babylonians", focus: "Tháp · Priest",
+      bonus: ["Thợ đá làm nhanh hơn 20%, mang thêm 2 đá", "Công nghệ ở Chợ rẻ hơn 30%", "Tường và tháp thêm 60% máu", "Priest hồi phép nhanh hơn 30%", "Chariot và Chariot Archer +1 giáp tên"],
+      team: "Thợ xây làm nhanh hơn 10%",
+      miss: ["Heavy Horse Archer", "Elephant Archer", "Heavy Cavalry", "War Elephant", "Ballista", "Trireme", "Catapult Trireme", "Iron Shield"],
+      good: ["Tháp và tường bền nhất game, đào đá nhanh: tower rush rất mạnh", "Priest hồi phép nhanh, chuyển đổi liên tục", "Chariot giáp tên tốt, ít sợ cung"],
+      bad: ["Không có voi, Heavy Cavalry, Ballista", "Hải quân yếu: thiếu Trireme và Catapult Trireme", "Đời Sắt thiếu dòng quân mạnh để kết thúc trận"],
+      play: ["Đời Công Cụ: cho 3–4 dân đào đá, xây tháp sát mỏ gỗ hoặc quả của đối thủ", "Đời Đồng: Chariot, Chariot Archer cùng Priest", "Đời Sắt: Helepolis không có, nên dùng Heavy Catapult, Centurion và Priest"],
+      age: "Đánh tháp từ đời Công Cụ, rồi lên Đồng với Priest và Chariot" },
+    { id: "egyptians", n: "Ai Cập", en: "Egyptians", focus: "Xe chiến · Priest",
+      bonus: ["Ruộng rẻ hơn 20%", "Thợ vàng làm nhanh hơn 20%, mang thêm 2 vàng", "Chariot và Chariot Archer thêm 33% máu", "Priest +2 / +3 tầm ở đời Đồng / Sắt"],
+      team: "Priest +1 giáp tên",
+      miss: ["Broad Swordsman", "Horse Archer", "Cavalry", "Armored Elephant", "Catapult", "Ballista", "Fire Galley", "Bronze Shield", "Siegecraft", "City Watch"],
+      good: ["Chariot và Scythe Chariot trâu nhất game, không tốn vàng", "Priest tầm xa nhất, chuyển đổi từ ngoài tầm cung", "Vàng nhiều nhờ thợ vàng nhanh"],
+      bad: ["Không có Cavalry và Horse Archer, kỵ binh chỉ có Chariot, voi, Camel", "Công thành chỉ có Stone Thrower, không có Ballista", "Kiếm sĩ chỉ tới Short Swordsman"],
+      play: ["Lên Đồng nhanh, ra Chariot Archer và Chariot", "Thêm Priest tầm xa để cướp voi, cướp quân đắt của đối thủ", "Đời Sắt: Scythe Chariot, War Elephant, Elephant Archer và Priest"],
+      age: "Lên Đồng nhanh rồi đánh xe chiến kèm Priest" },
+    { id: "greeks", n: "Hy Lạp", en: "Greeks", focus: "Bộ binh Học viện · Hải quân",
+      bonus: ["Nhà chính làm nhanh hơn 10% từ đời Công Cụ", "Quân Học viện chạy nhanh hơn 30% và rẻ hơn 20%", "Tàu chạy nhanh hơn 20%", "Polytheism và Astrology miễn phí (cần Đền thờ)"],
+      team: "Chợ rẻ hơn 50%",
+      miss: ["Broad Swordsman", "Improved Bowman", "Chariot Archer", "Horse Archer", "Elephant Archer", "Chariot", "Cataphract", "War Elephant", "Camel Rider", "Metallurgy", "City Watch", "Conscription", "Monotheism", "Zealotry"],
+      good: ["Hoplite, Phalanx, Centurion rẻ và chạy nhanh như kỵ binh, mạnh nhất game", "Hải quân nhanh, mạnh trên bản đồ nước", "Kinh tế tốt nhờ Nhà chính ra dân nhanh"],
+      bad: ["Gần như không có cung thủ (chỉ có Bowman)", "Không có xe chiến, voi, Camel", "Thiếu Monotheism và Metallurgy"],
+      play: ["Lên Đồng, xây Học viện sớm, ra Hoplite kèm vài Stone Thrower", "Bản đồ nước: dồn tàu chiến, giữ biển trước", "Đời Sắt: Centurion và Heavy Catapult, Heavy Cavalry để đuổi cung"],
+      age: "Lên Đồng nhanh, đánh Hoplite từ Học viện" },
+    { id: "hittites", n: "Hittite", en: "Hittites", focus: "Cung thủ · Công thành · Hải quân",
+      bonus: ["Mọi cung thủ +1 công", "Stone Thrower, Catapult, Heavy Catapult thêm 50% máu", "Tàu chiến (trừ Fire Galley) +1 / +2 / +3 tầm ở đời Công Cụ / Đồng / Sắt", "Wheel rẻ và nghiên cứu nhanh gấp đôi"],
+      team: "Tháp cho thêm 4 chỗ dân",
+      miss: ["Slinger", "Long Swordsman", "Improved Bowman", "Heavy Cavalry", "Ballista", "Centurion", "Fishing Ship", "Trireme", "Catapult Trireme", "Irrigation", "Architecture", "Mysticism", "Polytheism", "Afterlife", "Monotheism", "Fanaticism", "Zealotry", "Medicine"],
+      good: ["Horse Archer và Elephant Archer +1 công, rất mạnh ở đời Sắt", "Catapult bền, khó bị đánh chết", "Tàu chiến bắn xa hơn mọi phe"],
+      bad: ["Priest rất yếu vì thiếu gần hết công nghệ Đền thờ", "Không có Improved Bowman, Heavy Cavalry, Ballista", "Bộ binh chỉ tới Broad Swordsman và Phalanx"],
+      play: ["Đời Công Cụ: Bowman +1 công quấy dân", "Đời Đồng: Chariot Archer (Wheel rẻ) kèm Stone Thrower", "Đời Sắt: Heavy Horse Archer, Elephant Archer, Heavy Catapult"],
+      age: "Lên Đồng với Chariot Archer, đời Sắt chơi cung ngựa và Catapult" },
+    { id: "minoans", n: "Minoan", en: "Minoans", focus: "Cung thủ · Hải quân",
+      bonus: ["Tàu rẻ hơn 15% / 20% / 25% / 30% theo từng đời", "Dòng Improved Bowman +1 / +2 tầm ở đời Đồng / Sắt", "Nông dân làm nhanh hơn 10%"],
+      team: "Bến tàu rẻ hơn 20%",
+      miss: ["Legionary", "Chariot Archer", "Horse Archer", "Elephant Archer", "Chariot", "Heavy Cavalry", "War Elephant", "Fire Galley", "Fortified Wall", "Guard Tower", "Astrology", "Mysticism", "Afterlife", "Monotheism", "Fanaticism", "Zealotry"],
+      good: ["Composite Bowman tầm xa nhất game, bắn được Catapult và Priest", "Tàu rẻ nhất, áp đảo bản đồ nước", "Ruộng hiệu quả, kinh tế ổn định"],
+      bad: ["Không có xe chiến, voi, Horse Archer", "Priest yếu, thiếu các công nghệ Đền thờ", "Phòng thủ yếu: không có Guard Tower, Fortified Wall"],
+      play: ["Bản đồ nước: lên Công Cụ, ra Scout Ship rẻ để chiếm biển", "Đời Đồng: Improved Bowman, Composite Bowman kèm Hoplite đứng chặn", "Đời Sắt: Composite Bowman tầm xa và Heavy Catapult"],
+      age: "Lên Đồng với cung Composite, bản đồ nước thì giữ biển từ đời Công Cụ" },
+    { id: "persians", n: "Ba Tư", en: "Persians", focus: "Voi · Săn bắn",
+      bonus: ["Thợ săn làm nhanh hơn 30%, mang thêm 3 thức ăn", "Voi chạy nhanh hơn 25%", "Dòng Scout Ship bắn nhanh hơn 18% / 25% / 33% ở đời Công Cụ / Đồng / Sắt", "Tường rẻ hơn 20%"],
+      team: "Chuồng ngựa làm nhanh hơn 20%",
+      miss: ["Academy", "Chariot Archer", "Chariot", "Heavy Catapult", "Ballista", "Fire Galley", "Ballista Tower", "Craftsmanship", "Siegecraft", "Irrigation", "City Watch", "Aristocracy"],
+      good: ["War Elephant và Elephant Archer chạy nhanh, đè bẹp mọi quân cận chiến", "Săn voi rất nhanh, đầu trận nhiều thức ăn", "Trireme bắn nhanh"],
+      bad: ["Không có Học viện: không có Hoplite, Phalanx, Centurion", "Không có xe chiến, Ballista, Heavy Catapult", "Voi rất sợ Priest"],
+      play: ["Đầu trận dồn dân đi săn voi, lên Công Cụ và Đồng sớm", "Đời Đồng: Cavalry, Camel hoặc Stone Thrower để giữ nhà", "Đời Sắt: War Elephant, Armored Elephant, Elephant Archer, có Priest đi kèm"],
+      age: "Săn nhiều để lên đời nhanh, chơi voi ở đời Sắt" },
+    { id: "phoenicians", n: "Phoenicia", en: "Phoenicians", focus: "Voi · Hải quân",
+      bonus: ["Tiều phu làm nhanh hơn 15%, mang thêm 2 gỗ", "Voi rẻ hơn 25%", "Catapult Trireme và Juggernaut bắn nhanh hơn 33%", "Bến tàu thêm 150 máu, +4 tầm nhìn"],
+      team: "Cung thủ +2 tầm nhìn",
+      miss: ["Horse Archer", "Heavy Cavalry", "Catapult", "Ballista", "Fire Galley", "Metallurgy", "Chain Mail Infantry", "Chain Mail Archers", "Chain Mail Cavalry", "Siegecraft", "Architecture"],
+      good: ["War Elephant và Elephant Archer rẻ, ra được số lượng lớn", "Juggernaut bắn nhanh, xóa nhà ven biển", "Kinh tế gỗ tốt"],
+      bad: ["Thiếu Metallurgy và mọi Chain Mail, bộ binh và cung yếu cuối trận", "Không có Horse Archer, Heavy Cavalry, Catapult, Ballista", "Không có Architecture, nhà dễ bị phá"],
+      play: ["Đời Đồng: Chariot Archer hoặc Cavalry giữ thế", "Đời Sắt: dồn voi giá rẻ, kèm Elephant Archer", "Bản đồ nước: Catapult Trireme, Juggernaut phá nhà dọc bờ"],
+      age: "Lên Sắt để chơi voi giá rẻ, bản đồ nước thì chơi Juggernaut" },
+    { id: "shang", n: "Thương (Shang)", en: "Shang", focus: "Kinh tế · Kỵ binh",
+      bonus: ["Dân chỉ tốn 40 thức ăn (rẻ hơn 20%)", "Bắt đầu trận ít hơn 40 thức ăn", "Tường thêm 60% máu", "Dòng Cavalry đánh nhanh hơn 10%"],
+      team: "Nhà chính cho thêm 4 chỗ dân",
+      miss: ["Long Swordsman", "Elephant Archer", "War Elephant", "Heavy Catapult", "Trireme", "Catapult Trireme", "Ballista Tower", "Siegecraft", "Aristocracy", "Alchemy", "Engineering"],
+      good: ["Kinh tế đầu trận tốt nhất: dân rẻ nên số dân luôn vượt đối thủ", "Rất mạnh ở bản đồ ít tài nguyên và khi bị rush sớm", "Cavalry đánh nhanh, hợp với Cataphract"],
+      bad: ["Không có voi, Heavy Catapult, Trireme", "Kiếm sĩ chỉ tới Broad Swordsman", "Đời Sắt kém các phe chuyên đời Sắt"],
+      play: ["Ra dân liên tục, lên Công Cụ sớm hơn đối thủ vài phút", "Tool rush bằng Scout và Bowman, hoặc lên Đồng nhanh", "Đời Đồng–Sắt: Cavalry, Heavy Horse Archer, Centurion"],
+      age: "Lên đời sớm nhờ dân rẻ, đánh mạnh ở đời Công Cụ và Đồng" },
+    { id: "sumerians", n: "Sumer", en: "Sumerians", focus: "Công thành · Kinh tế ruộng",
+      bonus: ["Dân thêm 15 máu", "Stone Thrower, Catapult, Heavy Catapult bắn nhanh hơn 45%", "Ruộng thêm 125 thức ăn", "Camel +1 giáp tên"],
+      team: "Nhà chính rẻ hơn 25%",
+      miss: ["Legionary", "Improved Bowman", "Elephant Archer", "Cavalry", "Armored Elephant", "Ballista", "Catapult Trireme", "Metallurgy", "Iron Shield", "Craftsmanship", "Astrology", "Afterlife", "Monotheism", "Fanaticism", "Zealotry"],
+      good: ["Catapult bắn nhanh nhất game, phá tháp và cụm quân rất tốt", "Dân trâu, chịu được Tool rush", "Ruộng lâu cạn, ít phải xây lại"],
+      bad: ["Không có Cavalry, Improved Bowman, Ballista", "Thiếu Metallurgy, Iron Shield và nhiều công nghệ Đền thờ", "Đời Sắt thiếu kỵ binh nặng để đuổi Catapult địch"],
+      play: ["Đời Công Cụ: dân trâu có thể tự đánh trả rush", "Đời Đồng: Stone Thrower bắn nhanh kèm Chariot hoặc Camel", "Đời Sắt: Heavy Catapult, Centurion, War Elephant"],
+      age: "Lên Đồng sớm, chơi Catapult bắn nhanh kèm xe chiến" },
+    { id: "yamato", n: "Yamato", en: "Yamato", focus: "Kỵ binh · Hải quân",
+      bonus: ["Tàu cá làm nhanh hơn 20%", "Quân cưỡi ngựa rẻ hơn 15%", "Tàu thêm 10% / 15% / 20% / 25% máu theo từng đời", "Nâng cấp ở Chuồng ngựa và Trường bắn rẻ hơn 30%"],
+      team: "Chuồng ngựa và Trường bắn rẻ hơn 33% gỗ",
+      miss: ["Broad Swordsman", "Chariot Archer", "Elephant Archer", "Chariot", "Camel Rider", "War Elephant", "Catapult", "Ballista", "Fire Galley", "Fortified Wall", "Guard Tower", "Tower Shield", "Conscription", "Astrology", "Mysticism", "Monotheism", "Fanaticism", "Zealotry", "Medicine"],
+      good: ["Scout, Cavalry, Horse Archer rẻ, đánh nhanh rút nhanh", "Tàu bền và tàu cá nhanh: rất mạnh trên bản đồ nước", "Heavy Horse Archer và Cataphract tốt ở đời Sắt"],
+      bad: ["Không có xe chiến, voi, Camel", "Công thành chỉ có Stone Thrower", "Priest và phòng thủ yếu"],
+      play: ["Đời Công Cụ: Scout quấy dân, Bowman giữ nhà", "Đời Đồng: Cavalry rẻ làm chủ lực", "Đời Sắt: Heavy Horse Archer và Cataphract"],
+      age: "Tool rush bằng Scout, lên Đồng đánh kỵ binh" },
+    { id: "choson", n: "Choson (Triều Tiên)", en: "Choson", focus: "Bộ binh kiếm · Priest · Tháp",
+      bonus: ["Axeman, các dòng kiếm sĩ và Legionary thêm 5 / 15 / 20 / 60 / 80 máu", "Công nghệ ở Kho chứa rẻ hơn 40%", "Tháp +2 tầm", "Priest rẻ hơn 32%"],
+      team: "Công trình +2 tầm nhìn",
+      miss: ["Composite Bowman", "Heavy Horse Archer", "Elephant Archer", "Chariot", "Chariot Archer", "War Elephant", "Camel Rider", "Catapult", "Fire Galley", "Catapult Trireme", "Chain Mail Infantry", "Chain Mail Archers", "Chain Mail Cavalry", "Iron Shield", "Aristocracy", "Alchemy", "Engineering"],
+      good: ["Long Swordsman và Legionary trâu nhất game", "Tháp tầm xa, tower rush tốt", "Priest rẻ nên dùng được nhiều"],
+      bad: ["Không có xe chiến, voi, Camel, Catapult", "Thiếu mọi Chain Mail nên giáp yếu", "Cung chỉ tới Improved Bowman"],
+      play: ["Đời Công Cụ: tháp tầm xa ở mỏ đối thủ", "Đời Đồng: Short / Broad Swordsman kèm Priest giá rẻ", "Đời Sắt: Legionary 160+ máu và Helepolis bắn bộ binh"],
+      age: "Đánh tháp sớm hoặc lên Sắt nhanh để có Legionary" },
+    { id: "carthaginians", n: "Carthage", en: "Carthaginians", ex: true, focus: "Học viện · Voi · Hải quân",
+      bonus: ["Bắt đầu trận thêm 50 mỗi loại tài nguyên", "Quân Học viện và voi thêm 25% máu, Camel thêm 15% máu", "Fire Galley thêm 25% công", "Tàu vận chuyển chạy nhanh hơn 25%", "Nobility miễn phí (cần Trung tâm chính quyền)"],
+      team: "Học viện làm việc nhanh hơn 20%",
+      miss: ["Legionary", "Composite Bowman", "Chariot Archer", "Heavy Horse Archer", "Chariot", "Cataphract", "Catapult", "Catapult Trireme", "Metallurgy", "Chain Mail Infantry", "Chain Mail Archers", "Chain Mail Cavalry", "Fortified Wall", "Siegecraft", "Astrology", "Monotheism", "Fanaticism"],
+      good: ["Phalanx, Centurion và voi trâu hơn mọi phe", "Fire Galley mạnh nhất, giữ biển gần bờ tốt", "Bắt đầu nhiều tài nguyên, đầu trận nhanh"],
+      bad: ["Thiếu Metallurgy và mọi Chain Mail", "Không có Composite Bowman, xe chiến, Catapult", "Priest yếu vì thiếu Monotheism"],
+      play: ["Lên Đồng, xây Học viện, ra Hoplite trâu", "Đời Sắt: Centurion kèm Armored Elephant", "Bản đồ nước: Fire Galley cận chiến tàu địch"],
+      age: "Lên Đồng đánh Hoplite, đời Sắt chơi Centurion và voi" },
+    { id: "macedonians", n: "Macedonia", en: "Macedonians", ex: true, focus: "Học viện · Công thành · Chống chuyển đổi",
+      bonus: ["Mọi quân cận chiến +2 tầm nhìn", "Quân Học viện +1 / +2 giáp tên ở đời Đồng / Sắt", "Quân Xưởng công thành rẻ hơn 25%", "Mọi quân khó bị chuyển đổi gấp 4 lần"],
+      team: "Nhà thêm 50 máu",
+      miss: ["Long Swordsman", "Chariot Archer", "Elephant Archer", "Chariot", "Camel Rider", "Heavy Catapult", "Helepolis", "Juggernaut", "Fire Galley", "Priest", "Temple", "Fortified Wall", "Craftsmanship", "Siegecraft", "Nobility", "Engineering", "Conscription"],
+      good: ["Hoplite giáp tên dày, ít sợ cung thủ", "Gần như miễn nhiễm Priest địch", "Stone Thrower, Catapult, Ballista rẻ"],
+      bad: ["Không có Priest và Đền thờ (bản DE)", "Không có xe chiến, Camel, Heavy Catapult, Helepolis", "Kiếm sĩ chỉ tới Broad Swordsman"],
+      play: ["Lên Đồng, Hoplite kèm Stone Thrower giá rẻ", "Đánh thẳng vào đối thủ chơi Priest và voi, họ khó chuyển đổi được quân mình", "Đời Sắt: Centurion, Catapult, Ballista"],
+      age: "Lên Đồng sớm, đẩy bằng Hoplite và công thành rẻ" },
+    { id: "palmyrans", n: "Palmyra", en: "Palmyrans", ex: true, focus: "Kinh tế dân · Camel",
+      bonus: ["Dân tốn 75 thức ăn (đắt hơn 50%) nhưng +1 giáp, +1 giáp tên và làm nhanh hơn 25%", "Bắt đầu trận thêm 75 thức ăn", "Camel chạy nhanh hơn 25%", "Gửi tài nguyên cho đồng minh không mất phí", "Tàu buôn mang về thêm 20% vàng"],
+      team: "Nghiên cứu công nghệ nhanh hơn 30%",
+      miss: ["Long Swordsman", "Elephant Archer", "Cataphract", "Helepolis", "Centurion", "Catapult Trireme", "Metallurgy", "Tower Shield", "Craftsmanship", "Irrigation", "Logistics", "Aristocracy", "Engineering", "Mysticism", "Polytheism", "Monotheism", "Medicine"],
+      good: ["Mỗi dân khai thác như hơn một dân thường, lại trâu hơn", "Camel nhanh, đuổi kỵ binh và voi rất tốt", "Hợp chơi đồng đội nhờ gửi tài nguyên miễn phí"],
+      bad: ["Dân đắt nên ra dân đầu trận chậm, dễ bị rush sớm", "Không có Centurion, Cataphract, Helepolis", "Priest yếu, thiếu Monotheism và Medicine"],
+      play: ["Đầu trận ít dân hơn nhưng dân mạnh: giữ nhà cẩn thận trước rush", "Đời Đồng: Camel nhanh kèm Cavalry và cung", "Đời Sắt: Heavy Horse Archer, Armored Elephant, Heavy Cavalry"],
+      age: "Lên đời đều tay nhờ dân làm nhanh, chơi Camel và cung ngựa" },
+    { id: "romans", n: "La Mã", en: "Romans", ex: true, focus: "Kiếm sĩ · Tháp",
+      bonus: ["Công trình rẻ hơn 10% (trừ tháp, tường, kỳ quan)", "Tháp rẻ hơn 40%", "Kiếm sĩ đánh nhanh hơn 50%", "Ballista và Helepolis +1 tầm"],
+      team: "Priest hồi máu nhanh hơn 50%",
+      miss: ["Composite Bowman", "Chariot Archer", "Horse Archer", "Elephant Archer", "Heavy Cavalry", "War Elephant", "Camel Rider", "Fire Galley", "Guard Tower", "Irrigation", "Alchemy", "Conscription", "Astrology", "Afterlife"],
+      good: ["Legionary đánh nhanh nhất game, phá nhà và bộ binh cực nhanh", "Tháp rẻ, tower rush đời Công Cụ rất khó chịu", "Xây nhà rẻ, mở rộng nhanh"],
+      bad: ["Không có voi, Camel, Horse Archer", "Cung chỉ tới Improved Bowman", "Kỵ binh chỉ tới Cavalry"],
+      play: ["Đời Công Cụ: tháp rẻ ở mỏ gỗ và quả của đối thủ", "Đời Đồng: Short Swordsman đánh nhanh kèm Priest", "Đời Sắt: Legionary, Centurion, Helepolis tầm xa"],
+      age: "Đánh tháp từ đời Công Cụ, đời Sắt chơi Legionary" },
+  ],
+  aoe2: [
+    { id: "britons", n: "Anh", en: "Britons", focus: "Cung thủ",
+      uu: "Longbowman (cung tầm xa)", ut: ["<b>Yeomen</b>: cung bộ +1 tầm, tháp +2 công", "<b>Warwolf</b>: Trebuchet gây sát thương lan, bắn trúng quân 100%"],
+      bonus: ["Nhà chính rẻ hơn 50% gỗ từ đời Lâu Đài", "Cung bộ (trừ Skirmisher) +1 / +2 tầm ở đời Lâu Đài / Đế Quốc", "Người chăn cừu làm nhanh hơn 25%"],
+      team: "Trường bắn làm việc nhanh hơn 10%",
+      good: ["Cung tầm xa nhất game, bắn được Skirmisher và Mangonel từ ngoài tầm", "Elite Longbowman cuối trận gần như không thể áp sát", "Trebuchet Warwolf chính xác, phá cả cụm quân"],
+      bad: ["Kỵ binh rất kém: không có Bloodlines và nâng cấp cuối", "Xưởng công thành yếu: không có Bombard Cannon, Siege Ram, Siege Onager", "Thiếu Thumb Ring và Redemption"],
+      play: ["Phong Kiến: 1–2 Trường bắn, đánh Archer sớm", "Lâu Đài: Crossbowman, sau đó Longbowman, kèm Pikeman chặn kỵ binh", "Đế Quốc: Elite Longbowman, Halberdier, Trebuchet Warwolf"],
+      age: "Phong Kiến đánh cung, Lâu Đài chuyển sang Longbowman" },
+    { id: "byzantines", n: "Byzantine", en: "Byzantines", focus: "Phòng thủ · Quân khắc chế rẻ",
+      uu: "Cataphract (kỵ nặng diệt bộ binh)", ut: ["<b>Greek Fire</b>: Fire Ship +1 tầm, Bombard Tower sát thương lan", "<b>Logistica</b>: Cataphract gây sát thương giẫm lan"],
+      bonus: ["Công trình thêm 10% / 20% / 30% / 40% máu theo từng đời", "Camel, Skirmisher, Spearman rẻ hơn 25%", "Fire Ship và Dromon bắn nhanh hơn 25%", "Lên Đế Quốc rẻ hơn 33%", "Town Watch và Town Patrol miễn phí"],
+      team: "Monk hồi máu nhanh hơn 100%",
+      good: ["Quân khắc chế (Spearman, Skirmisher, Camel) rẻ, giữ nhà rất chắc", "Cataphract diệt bộ binh và Camel", "Hải quân đủ đồ, Fire Ship mạnh"],
+      bad: ["Không có bonus kinh tế, đầu trận chậm", "Kỵ cung kém: thiếu Parthian Tactics và Bloodlines", "Thiếu Siege Onager, Heavy Scorpion, Siege Engineers"],
+      play: ["Phong Kiến: Skirmisher và Spearman rẻ để giữ nhà", "Lâu Đài: Crossbowman hoặc Knight, thêm Camel nếu đối thủ chơi kỵ binh", "Đế Quốc (lên rẻ): Arbalester, Cataphract, Halberdier"],
+      age: "Phòng thủ chắc ở Phong Kiến, lên Đế Quốc sớm vì rẻ" },
+    { id: "celts", n: "Celt", en: "Celts", focus: "Bộ binh · Công thành",
+      uu: "Woad Raider (bộ binh chạy nhanh)", ut: ["<b>Stronghold</b>: Lâu đài và tháp bắn nhanh hơn 33%, Lâu đài hồi máu bộ binh", "<b>Furor Celtica</b>: quân Xưởng công thành thêm 40% máu"],
+      bonus: ["Bộ binh chạy nhanh hơn 5% / 10% / 15% / 20% theo từng đời", "Tiều phu làm nhanh hơn 15%", "Vũ khí công thành bắn nhanh hơn 25%", "Cướp được gia súc của đối thủ kể cả khi có quân đứng cạnh"],
+      team: "Xưởng công thành làm việc nhanh hơn 20%",
+      good: ["Xưởng công thành tốt nhất game: Onager, Scorpion, Ram bắn nhanh, máu trâu", "Bộ binh và Woad Raider chạy nhanh, đi phá kinh tế rất tốt", "Gỗ nhiều nhờ tiều phu nhanh"],
+      bad: ["Cung thủ rất kém, thiếu nhiều nâng cấp", "Kỵ binh tầm thường: thiếu Bloodlines và Plate Barding Armor", "Monk yếu, thiếu 5/10 công nghệ Tu viện"],
+      play: ["Bóng Tối: Militia rush, hoặc Phong Kiến: Scout và Man-at-Arms", "Lâu Đài: Mangonel và Scorpion kèm Long Swordsman, Pikeman", "Đế Quốc: Siege Onager, Siege Ram, Woad Raider, Halberdier"],
+      age: "Đánh sớm bằng bộ binh, đời Lâu Đài chuyển sang công thành" },
+    { id: "chinese", n: "Trung Quốc", en: "Chinese", focus: "Cung thủ · Linh hoạt",
+      uu: "Chu Ko Nu (nỏ liên châu) · Dragon Ship (tàu lửa riêng)", ut: ["<b>Great Wall</b>: tường và tháp thêm 30% máu", "<b>Rocketry</b>: Scorpion và Rocket Cart +25% công"],
+      bonus: ["Bắt đầu thêm 3 dân nhưng ít hơn 200 thức ăn và 50 gỗ", "Nhà chính chứa 15 dân, +7 tầm nhìn", "Công nghệ rẻ hơn 5% / 10% / 15% ở đời Phong Kiến / Lâu Đài / Đế Quốc", "Fire Galley và Fire Lancer chạy nhanh hơn ở đời Lâu Đài và Đế Quốc"],
+      team: "Ruộng thêm 10% thức ăn",
+      good: ["Cây công nghệ rất rộng, cung bộ đủ mọi nâng cấp", "Chu Ko Nu bắn nhiều tên, sát thương cực lớn", "Công nghệ rẻ nên luôn đi trước đối thủ"],
+      bad: ["Đầu trận khó chơi: thiếu thức ăn, dễ bị phá nếu gặp tài nguyên xấu", "Công thành tầm thường: không có Bombard Cannon, Siege Engineers", "Thiếu Redemption, khó đối phó công thành địch"],
+      play: ["Bóng Tối: tận dụng 3 dân thêm, lên Phong Kiến bằng Scout hoặc Archer", "Lâu Đài: Chu Ko Nu, Crossbowman kèm Knight", "Đế Quốc: Elite Chu Ko Nu, Heavy Rocket Cart, Paladin"],
+      age: "Lên Phong Kiến bình thường, Lâu Đài chơi Chu Ko Nu" },
+    { id: "franks", n: "Frank", en: "Franks", focus: "Kỵ binh",
+      uu: "Throwing Axeman (bộ binh ném rìu)", ut: ["<b>Chivalry</b>: Chuồng ngựa làm nhanh hơn 40%", "<b>Ordonnance Companies</b>: Mounted Crossbowman rẻ hơn 40% vàng"],
+      bonus: ["Nâng cấp ruộng miễn phí", "Lâu đài rẻ hơn 15% / 25% ở đời Lâu Đài / Đế Quốc", "Quân cưỡi ngựa thêm 20% máu (từ Phong Kiến)", "Người hái quả làm nhanh hơn 15%"],
+      team: "Knight +2 tầm nhìn",
+      good: ["Knight, Cavalier, Paladin trâu nhất game", "Kinh tế ruộng tốt nhờ nâng cấp miễn phí", "Lâu đài rẻ, chiếm bản đồ dễ"],
+      bad: ["Không có Hussar, kỵ binh nhẹ yếu", "Cung thủ yếu, thiếu nhiều nâng cấp", "Hải quân yếu, không có Siege Onager và Siege Ram"],
+      play: ["Phong Kiến: Scout rush hoặc lên Lâu Đài nhanh", "Lâu Đài: Knight làm chủ lực, Lâu đài rẻ để giữ đất", "Đế Quốc: Paladin, Throwing Axeman, Champion"],
+      age: "Lên Lâu Đài nhanh rồi đánh Knight" },
+    { id: "goths", n: "Goth", en: "Goths", focus: "Bộ binh",
+      uu: "Huskarl (bộ binh chống cung)", ut: ["<b>Anarchy</b>: ra Huskarl ở Trại lính", "<b>Perfusion</b>: Trại lính làm việc nhanh hơn 100%"],
+      bonus: ["Bộ binh rẻ hơn 15% / 20% / 25% / 30% theo từng đời", "Bộ binh +1 / +2 / +3 công vào công trình ở Phong Kiến / Lâu Đài / Đế Quốc", "Thợ săn mang thêm 15 thức ăn, thú săn được lâu hơn", "Loom nghiên cứu tức thì", "Tối đa thêm 10 dân ở đời Đế Quốc"],
+      team: "Trại lính làm việc nhanh hơn 20%",
+      good: ["Bộ binh rẻ và ra cực nhanh, cuối trận ra quân liên tục", "Huskarl khắc chế cung thủ tốt nhất game", "Bộ binh phá nhà mạnh"],
+      bad: ["Phòng thủ tệ: không có tường đá, Guard Tower", "Bộ binh giáp mỏng (thiếu Gambesons, Plate Mail)", "Không có Arbalester, Siege Ram, Siege Onager"],
+      play: ["Bóng Tối–Phong Kiến: săn nhiều, Man-at-Arms hoặc Scout quấy", "Lâu Đài: boom thêm Nhà chính, giữ nhà bằng Pikeman, Skirmisher", "Đế Quốc: nhiều Trại lính ra Huskarl, Champion, Halberdier liên tục"],
+      age: "Boom kinh tế, lên Đế Quốc rồi dồn bộ binh" },
+    { id: "japanese", n: "Nhật Bản", en: "Japanese", focus: "Bộ binh · Hải quân",
+      uu: "Samurai (diệt đơn vị riêng)", ut: ["<b>Yasama</b>: tháp bắn thêm 2 mũi tên", "<b>Kataparuto</b>: Trebuchet bắn, dựng và gỡ nhanh hơn"],
+      bonus: ["Tàu cá gấp đôi máu, +2 giáp tên, làm nhanh hơn 5% / 10% / 15% / 20% theo từng đời", "Nhà xay, Trại gỗ, Trại mỏ rẻ hơn 50%", "Bộ binh đánh nhanh hơn 33% từ Phong Kiến", "Kỵ cung +2 công vào cung thủ"],
+      team: "Galley +4 tầm nhìn",
+      good: ["Bộ binh mạnh nhất game nhờ đánh nhanh, đủ mọi nâng cấp", "Kinh tế cá và hải quân rất tốt", "Trebuchet Kataparuto cơ động, cung thủ đủ nâng cấp"],
+      bad: ["Kỵ binh cuối trận kém: không có Hussar, Paladin", "Công thành yếu: không có Bombard Cannon, Siege Ram, Siege Onager", "Khó đẩy vào nhà đối thủ cuối trận"],
+      play: ["Phong Kiến: Man-at-Arms rồi Archer, bản đồ nước thì Galley", "Lâu Đài: Knight hoặc Crossbowman, thêm Samurai diệt đơn vị riêng địch", "Đế Quốc: Champion, Samurai, Arbalester, Trebuchet"],
+      age: "Đánh bộ binh từ Phong Kiến, bản đồ nước thì giữ biển" },
+    { id: "mongols", n: "Mông Cổ", en: "Mongols", focus: "Kỵ cung · Kỵ binh nhẹ",
+      uu: "Mangudai (kỵ cung diệt công thành)", ut: ["<b>Nomads</b>: nhà bị phá vẫn giữ chỗ dân", "<b>Drill</b>: quân Xưởng công thành chạy nhanh hơn 50%"],
+      bonus: ["Kỵ cung bắn nhanh hơn 25%", "Dòng Scout Cavalry và Steppe Lancer thêm 20% / 30% máu ở đời Lâu Đài / Đế Quốc", "Thợ săn làm nhanh hơn 40%"],
+      team: "Dòng Scout Cavalry +2 tầm nhìn",
+      good: ["Kỵ cung và Mangudai mạnh nhất game", "Scout rush Phong Kiến hàng đầu nhờ săn nhanh", "Hussar trâu, Siege Onager có Drill chạy nhanh"],
+      bad: ["Bộ binh và quân đứng thiếu nâng cấp, không có Halberdier", "Thiếu Plate Barding Armor, Ring Archer Armor: kỵ binh mỏng cuối trận", "Cần điều khiển kỹ, khó chơi cho người mới"],
+      play: ["Phong Kiến: Scout rush, săn hết thú của bản đồ", "Lâu Đài: Cavalry Archer hoặc Mangudai, kèm Light Cavalry", "Đế Quốc: Elite Mangudai, Hussar, Siege Onager"],
+      age: "Scout rush ở Phong Kiến, Lâu Đài chuyển sang kỵ cung" },
+    { id: "persians", n: "Ba Tư", en: "Persians", focus: "Kỵ binh · Kinh tế",
+      uu: "War Elephant (voi chiến) · Savar (thay Paladin)", ut: ["<b>Kamandaran</b>: dòng Archer chỉ tốn 50 gỗ, không tốn vàng", "<b>Citadels</b>: Lâu đài +4 công, bắn mạnh hơn vào Ram và bộ binh"],
+      bonus: ["Bắt đầu thêm 50 thức ăn và 50 gỗ", "Nhà chính và Bến tàu gấp đôi máu, làm nhanh hơn 5% / 10% / 15% / 20% theo từng đời", "Có Parthian Tactics từ đời Lâu Đài", "Xây được Caravanserai ở đời Đế Quốc"],
+      team: "Dòng Knight +2 công vào cung thủ",
+      good: ["Kinh tế rất mạnh: Nhà chính ra dân nhanh, khó bị phá", "Knight đánh cung tốt, Hussar và Heavy Camel đủ nâng cấp", "War Elephant cực trâu, Crossbowman không tốn vàng (Kamandaran)"],
+      bad: ["Bộ binh kiếm yếu: không có Two-Handed Swordsman", "Cung kém: thiếu Bracer, Arbalester", "Monk rất yếu, phòng thủ thiếu Keep, Bombard Tower"],
+      play: ["Phong Kiến: Scout hoặc Knight rush sớm", "Lâu Đài: Knight kèm Crossbowman giá rẻ", "Đế Quốc: Savar, War Elephant, Halberdier, Hand Cannoneer"],
+      age: "Lên Lâu Đài nhanh nhờ Nhà chính làm nhanh, đánh Knight" },
+    { id: "saracens", n: "Saracen (Ả Rập)", en: "Saracens", focus: "Lạc đà · Hải quân",
+      uu: "Mameluke (lạc đà ném kiếm)", ut: ["<b>Bimaristan</b>: Monk tự hồi máu nhiều quân cùng lúc", "<b>Counterweights</b>: Trebuchet và Mangonel +15% công"],
+      bonus: ["Phí đổi tài nguyên ở Chợ chỉ 5%", "Chợ rẻ hơn 75 gỗ", "Tàu vận chuyển gấp đôi máu, chở được nhiều hơn", "Galley tấn công nhanh hơn 25%", "Camel thêm 25% máu"],
+      team: "Cung bộ +3 công vào công trình",
+      good: ["Camel và Mameluke rất trâu, khắc kỵ binh", "Archer rush phá nhà tốt nhờ bonus công trình", "Chợ đổi tài nguyên rẻ, linh hoạt cuối trận"],
+      bad: ["Không có Cavalier và Halberdier", "Thiếu Shipwright, hải quân cuối trận dễ bị bỏ lại", "Không có bonus kinh tế rõ ràng, cần tính toán nhiều"],
+      play: ["Phong Kiến: Archer rush, bắn vào nhà và Nhà chính", "Lâu Đài: Camel, Crossbowman, Mameluke nếu đối thủ chơi kỵ binh", "Đế Quốc: Heavy Camel, Arbalester, Mameluke, Trebuchet"],
+      age: "Archer rush Phong Kiến, Lâu Đài chơi Camel" },
+    { id: "teutons", n: "Teuton (Đức)", en: "Teutons", focus: "Bộ binh nặng · Phòng thủ",
+      uu: "Teutonic Knight (bộ binh giáp nặng)", ut: ["<b>Ironclad</b>: công thành +4 giáp cận chiến", "<b>Crenellations</b>: Lâu đài +3 tầm, bộ binh trong Lâu đài bắn tên"],
+      bonus: ["Monk hồi máu tầm gấp đôi", "Tháp chứa gấp đôi quân", "Murder Holes và Herbal Medicine miễn phí", "Ruộng rẻ hơn 40%", "Nhà chính chứa thêm 10 dân", "Bộ binh và kỵ binh +1 / +2 giáp cận chiến ở đời Lâu Đài / Đế Quốc"],
+      team: "Quân và công trình khó bị chuyển đổi hơn",
+      good: ["Teutonic Knight và Paladin cực trâu trong cận chiến", "Phòng thủ tốt, Lâu đài bắn trả được Bombard Cannon", "Ruộng rẻ, kinh tế giữa trận mạnh; Monk tốt"],
+      bad: ["Chậm: không có Light Cavalry, thiếu Husbandry", "Cung thủ rất yếu, chỉ có Hand Cannoneer dùng được", "Hải quân kém, thiếu Dry Dock và Bracer"],
+      play: ["Phong Kiến: Man-at-Arms hoặc lên Lâu Đài nhanh", "Lâu Đài: Knight, boom ruộng rẻ, xây Lâu đài giữ đất", "Đế Quốc: Teutonic Knight, Paladin, Siege Onager, Bombard Cannon"],
+      age: "Lên Lâu Đài nhanh, boom bằng ruộng rẻ" },
+    { id: "turks", n: "Thổ Nhĩ Kỳ", en: "Turks", focus: "Thuốc súng",
+      uu: "Janissary (lính súng)", ut: ["<b>Sipahi</b>: kỵ cung thêm 20 máu", "<b>Artillery</b>: Bombard Tower, Bombard Cannon, Cannon Galleon +2 tầm"],
+      bonus: ["Quân thuốc súng thêm 25% máu", "Chemistry miễn phí", "Công nghệ thuốc súng rẻ hơn 50%", "Thợ vàng làm nhanh hơn 25%", "Nâng Light Cavalry và Hussar miễn phí", "Dòng Scout Cavalry +1 giáp tên"],
+      team: "Quân thuốc súng ra nhanh hơn 25%",
+      good: ["Thuốc súng mạnh nhất game: Janissary, Bombard Cannon tầm xa", "Lên Đế Quốc nhanh rất mạnh nhờ Chemistry miễn phí", "Hussar miễn phí và trâu, kỵ cung tốt"],
+      bad: ["Không có Elite Skirmisher và Pikeman", "Rất phụ thuộc vàng, hết vàng là yếu nhất game", "Không có Onager, kinh tế thiếu Crop Rotation"],
+      play: ["Phong Kiến: Scout giữ bản đồ, đào vàng nhiều", "Lâu Đài: Knight hoặc kỵ cung, chiếm mỏ vàng", "Đế Quốc: Janissary, Bombard Cannon, Hussar"],
+      age: "Lên Đế Quốc nhanh (fast imperial), đánh thuốc súng" },
+    { id: "vikings", n: "Viking", en: "Vikings", focus: "Bộ binh · Hải quân",
+      uu: "Berserk (bộ binh tự hồi máu) · Longboat (tàu chiến riêng)", ut: ["<b>Chieftains</b>: bộ binh +5 công vào kỵ binh, +4 vào Camel", "<b>Bogsveigar</b>: dòng Archer và Longboat +1 công"],
+      bonus: ["Wheelbarrow và Hand Cart miễn phí", "Tàu chiến rẻ hơn 10% / 15% / 20% ở đời Phong Kiến / Lâu Đài / Đế Quốc", "Bộ binh thêm 20% máu từ Phong Kiến"],
+      team: "Bến tàu rẻ hơn 15%",
+      good: ["Hải quân ra nhiều nhất game, Longboat rất mạnh", "Kinh tế giữa trận thuộc hàng tốt nhất nhờ nâng cấp miễn phí", "Bộ binh trâu, Berserk tự hồi máu"],
+      bad: ["Kỵ binh rất yếu, thiếu hầu hết nâng cấp", "Không có Halberdier", "Thiếu Thumb Ring, Shipwright"],
+      play: ["Phong Kiến: Archer hoặc Man-at-Arms; bản đồ nước thì Galley", "Lâu Đài: Crossbowman, Longboat, Pikeman", "Đế Quốc: Champion, Berserk, Arbalester"],
+      age: "Đánh Phong Kiến, tận dụng kinh tế mạnh để lên Lâu Đài" },
+    { id: "aztecs", n: "Aztec", en: "Aztecs", ex: true, focus: "Bộ binh · Monk",
+      uu: "Jaguar Warrior (diệt bộ binh)", ut: ["<b>Atlatl</b>: Skirmisher +1 công, +1 tầm", "<b>Garland Wars</b>: bộ binh +4 công"],
+      bonus: ["Bắt đầu với Eagle Scout thay cho Scout Cavalry", "Dân mang thêm 3 tài nguyên", "Quân ra nhanh hơn 15%", "Monk thêm 5 máu cho mỗi công nghệ Tu viện", "Bắt đầu thêm 50 vàng"],
+      team: "Thánh tích (Relic) sinh thêm 33% vàng",
+      good: ["Ra quân nhanh nhất game, rush rất mạnh", "Bộ binh cận chiến cực mạnh với Garland Wars", "Monk trâu, Eagle Warrior giết Monk và cung"],
+      bad: ["Không có Chuồng ngựa, kỵ cung, thuốc súng", "Không có Halberdier, phải dùng Monk chống kỵ binh nặng", "Hải quân yếu (không có Galleon), phòng thủ kém"],
+      play: ["Bóng Tối: Militia rush nhờ 50 vàng thêm", "Phong Kiến: Man-at-Arms và Archer; Lâu Đài: Eagle Warrior kèm Monk", "Đế Quốc: Elite Eagle, Champion, Jaguar, Monk"],
+      age: "Rush sớm từ Bóng Tối hoặc Phong Kiến, giữ áp lực liên tục" },
+    { id: "huns", n: "Hung (Huns)", en: "Huns", ex: true, focus: "Kỵ binh",
+      uu: "Tarkan (kỵ binh phá nhà)", ut: ["<b>Marauders</b>: ra Tarkan ở Chuồng ngựa", "<b>Atheism</b>: đếm ngược kỳ quan và thánh tích thêm 100 năm, đối thủ nhận ít vàng thánh tích hơn"],
+      bonus: ["Không cần xây nhà, nhưng bắt đầu ít hơn 100 gỗ", "Kỵ cung rẻ hơn 10% / 20% ở đời Lâu Đài / Đế Quốc", "Trebuchet chính xác hơn 35% khi bắn quân"],
+      team: "Chuồng ngựa làm việc nhanh hơn 20%",
+      good: ["Không lo nhà, tiết kiệm gỗ và thời gian, đánh liên tục", "Có Paladin đủ nâng cấp, kỵ cung rẻ", "Tarkan phá tháp và Lâu đài nhanh"],
+      bad: ["Bộ binh yếu: không có Champion, Plate Mail", "Phòng thủ tệ: không có Fortified Wall, nâng cấp tháp", "Thiếu Onager, Heavy Scorpion, Bombard Cannon; Monk kém"],
+      play: ["Phong Kiến: Scout rush, không phải xây nhà nên ra quân sớm hơn", "Lâu Đài: Knight hoặc Cavalry Archer, Tarkan đi phá Nhà chính", "Đế Quốc: Paladin, Heavy Cavalry Archer, Hussar"],
+      age: "Scout rush ở Phong Kiến, Lâu Đài chơi kỵ cung hoặc Knight" },
+    { id: "koreans", n: "Triều Tiên", en: "Koreans", ex: true, focus: "Tháp · Hải quân · Cung",
+      uu: "War Wagon (xe bắn tên) · Turtle Ship (thuyền rùa)", ut: ["<b>Eupseong</b>: dòng tháp canh +2 tầm", "<b>Shinkichon</b>: Rocket Cart và Turtle Ship +1 tầm"],
+      bonus: ["Thợ đá làm nhanh hơn 20%", "Nâng giáp cung, nâng tháp và Bombard Tower miễn phí (Bombard Tower cần Chemistry)", "Cung thủ và bộ binh rẻ hơn 50% gỗ", "Tàu chiến rẻ hơn 20% gỗ"],
+      team: "Dân +3 tầm nhìn",
+      good: ["Tháp mạnh nhất game, tầm 13 bắn trả được Bombard Cannon", "Cung bộ đủ nâng cấp, rẻ gỗ; War Wagon trâu", "Hải quân tốt, có Turtle Ship"],
+      bad: ["Kỵ binh yếu: thiếu Bloodlines, Plate Barding, Blast Furnace", "Không có thuyền Demolition, không có Siege Ram", "Monk yếu, khó đối phó Monk địch"],
+      play: ["Phong Kiến: tháp sớm ở mỏ đối thủ hoặc Archer", "Lâu Đài: Crossbowman, War Wagon, Mangonel", "Đế Quốc: Arbalester, Elite War Wagon, Siege Onager, Halberdier"],
+      age: "Đánh tháp hoặc cung ở Phong Kiến, đời sau chơi War Wagon" },
+    { id: "mayans", n: "Maya", en: "Mayans", ex: true, focus: "Cung thủ · Kinh tế",
+      uu: "Plumed Archer (cung trâu chạy nhanh)", ut: ["<b>Hul'che Javelineers</b>: Skirmisher ném thêm một mũi lao", "<b>Holcans</b>: Eagle Warrior thêm 40 máu"],
+      bonus: ["Bắt đầu với Eagle Scout", "Bắt đầu thêm 1 dân nhưng ít hơn 50 thức ăn", "Tài nguyên khai thác được lâu hơn 15%", "Cung bộ (trừ Skirmisher) rẻ hơn 10% / 20% / 30% ở đời Phong Kiến / Lâu Đài / Đế Quốc"],
+      team: "Tường và cổng rẻ hơn 50%",
+      good: ["Kinh tế rất tốt: thêm dân đầu trận, tài nguyên lâu cạn", "Archer rush Phong Kiến thuộc hàng mạnh nhất", "Plumed Archer và Eagle Warrior cơ động"],
+      bad: ["Không có kỵ binh ngựa và thuốc súng", "Thiếu Redemption, khó đối phó Onager địch", "Kiếm sĩ không có Champion"],
+      play: ["Phong Kiến: Archer rush, Eagle Scout đi quấy", "Lâu Đài: Plumed Archer hoặc Crossbowman kèm Eagle Warrior", "Đế Quốc: Arbalester, Elite Eagle, Halberdier"],
+      age: "Archer rush Phong Kiến, Lâu Đài chuyển sang Plumed Archer" },
+    { id: "spanish", n: "Tây Ban Nha", en: "Spanish", ex: true, focus: "Thuốc súng · Monk",
+      uu: "Conquistador (kỵ binh súng) · Missionary (Monk cưỡi ngựa)", ut: ["<b>Inquisition</b>: Monk và Missionary chuyển đổi nhanh hơn, Missionary +1 tầm", "<b>Supremacy</b>: dân +6 công, +2 giáp, +40 máu"],
+      bonus: ["Thợ xây làm nhanh hơn 30%", "Nâng cấp ở Lò rèn không tốn vàng", "Đạn Cannon Galleon bay nhanh và đuổi theo mục tiêu", "Quân thuốc súng bắn nhanh hơn 18%", "Nhận 20 vàng mỗi khi nghiên cứu xong một công nghệ"],
+      team: "Quân buôn bán sinh thêm 25% vàng",
+      good: ["Conquistador đầu đời Lâu Đài cực nguy hiểm", "Bộ binh, kỵ binh, quân rẻ đủ mọi nâng cấp; Monk đủ công nghệ", "Hải quân hoàn hảo, phòng thủ chắc"],
+      bad: ["Cung thủ rất kém: không có Crossbowman", "Đầu trận yếu, không có bonus kinh tế sớm", "Công thành kém: không có Siege Onager, Heavy Scorpion"],
+      play: ["Phong Kiến: tháp sớm (xây nhanh) hoặc Scout", "Lâu Đài: Knight, Conquistador, Monk", "Đế Quốc: Paladin, Conquistador, Bombard Cannon, Champion"],
+      age: "Giữ nhà ở Phong Kiến, mạnh dần từ Lâu Đài và Đế Quốc" },
+  ],
+};
+
+const CATS = {
+  aoe1: [["build","Công trình"],["def","Phòng thủ"],["eco","Dân & kinh tế"],["inf","Bộ binh"],["arch","Cung thủ"],["cav","Kỵ binh"],["siege","Công thành"],["monk","Tôn giáo"],["naval","Hải quân"]],
+  aoe2: [["uu","Đơn vị riêng"],["build","Công trình"],["def","Phòng thủ"],["eco","Dân & kinh tế"],["inf","Bộ binh"],["arch","Cung thủ"],["cav","Kỵ binh"],["siege","Công thành"],["monk","Tôn giáo"],["naval","Hải quân"]],
+};
+const AGE = { aoe1: ["Đá", "Công Cụ", "Đồng", "Sắt"], aoe2: ["Bóng Tối", "Phong Kiến", "Lâu Đài", "Đế Quốc"] };
+
+// a: đời (1-4), line: dòng nâng cấp, x: bản mở rộng, uu: id nền văn minh có đơn vị riêng
+const DATA = [
+  // ================= AoE I =================
+  { g:"aoe1", c:"build", k:"town-center", en:"Town Center", vn:"Nhà chính", a:1, from:"Dân xây", d:"Ra dân, lên đời, nơi dân đổ mọi loại tài nguyên. Nhà chính thứ hai trở đi chỉ xây được khi có Trung tâm chính quyền (đời Đồng).", s:"", w:"Không tự bắn như trong AoE II, cần quân hoặc tháp bảo vệ" },
+  { g:"aoe1", c:"build", k:"house", en:"House", vn:"Nhà", a:1, from:"Dân xây", d:"Mỗi nhà cho thêm 4 chỗ dân. Hết chỗ là không ra thêm được dân hay lính.", s:"Rẻ", w:"Mỏng, dễ bị phá" },
+  { g:"aoe1", c:"build", k:"granary", en:"Granary", vn:"Kho lương", a:1, from:"Dân xây", d:"Nơi đổ thức ăn từ quả và ruộng. Nghiên cứu tháp canh, tường thành.", s:"Xây cạnh bụi quả, giữa cụm ruộng", w:"" },
+  { g:"aoe1", c:"build", k:"storage-pit", en:"Storage Pit", vn:"Kho chứa", a:1, from:"Dân xây", d:"Nơi đổ gỗ, đá, vàng và thịt săn. Nghiên cứu nâng cấp công, giáp cho quân (Toolworking, Leather Armor…).", s:"Xây sát rừng và mỏ", w:"" },
+  { g:"aoe1", c:"build", k:"dock", en:"Dock", vn:"Bến tàu", a:1, from:"Dân xây", d:"Đóng tàu cá, tàu buôn, tàu vận chuyển và tàu chiến. Đặt ở mép nước.", s:"Tàu cá là nguồn thức ăn chính trên bản đồ nước", w:"Bị tàu chiến địch bắn từ xa" },
+  { g:"aoe1", c:"build", k:"barracks", en:"Barracks", vn:"Trại lính", a:1, from:"Dân xây", d:"Huấn luyện Clubman, kiếm sĩ và Slinger. Nghiên cứu Battle Axe và các thanh kiếm.", s:"Rẻ, tính vào 2 công trình lên đời Công Cụ", w:"" },
+  { g:"aoe1", c:"build", k:"archery-range", en:"Archery Range", vn:"Trường bắn", a:2, from:"Dân xây", d:"Huấn luyện mọi loại cung thủ: Bowman, Improved Bowman, Chariot Archer, Horse Archer, Elephant Archer.", s:"Tính vào 2 công trình lên đời Đồng", w:"" },
+  { g:"aoe1", c:"build", k:"stable", en:"Stable", vn:"Chuồng ngựa", a:2, from:"Dân xây", d:"Huấn luyện Scout, Cavalry, Chariot, Camel và voi chiến.", s:"Tính vào 2 công trình lên đời Đồng", w:"" },
+  { g:"aoe1", c:"build", k:"market", en:"Market", vn:"Chợ", a:2, from:"Dân xây", d:"Mở khóa Ruộng, công nghệ kinh tế (Woodworking, Gold Mining, Stone Mining, Domestication) và gửi tài nguyên cho đồng minh.", s:"Cần có trước khi xây ruộng", w:"" },
+  { g:"aoe1", c:"eco", k:"farm", en:"Farm", vn:"Ruộng", a:2, from:"Dân xây (cần Chợ)", d:"Nguồn thức ăn lâu dài khi hết quả và thú săn. Cạn thì phải xây lại.", s:"Thức ăn ổn định cuối trận", w:"Tốn gỗ, dễ bị quấy" },
+  { g:"aoe1", c:"build", k:"temple", en:"Temple", vn:"Đền thờ", a:3, from:"Dân xây", d:"Đào tạo Priest và nghiên cứu công nghệ tôn giáo: Astrology, Mysticism, Polytheism, Afterlife, Monotheism, Fanaticism, Medicine.", s:"Monotheism cho Priest chuyển đổi được Priest và công trình", w:"" },
+  { g:"aoe1", c:"build", k:"government-center", en:"Government Center", vn:"Trung tâm chính quyền", a:3, from:"Dân xây", d:"Cho phép xây thêm Nhà chính. Nghiên cứu Nobility, Writing, Architecture, Aristocracy, Ballistics, Alchemy, Engineering.", s:"Architecture làm công trình xây nhanh, bền hơn", w:"" },
+  { g:"aoe1", c:"build", k:"academy", en:"Academy", vn:"Học viện", a:3, from:"Dân xây", d:"Huấn luyện Hoplite và nâng cấp Phalanx, Centurion.", s:"Bộ binh giáp nặng mạnh nhất game", w:"Ba Tư không có Học viện" },
+  { g:"aoe1", c:"build", k:"siege-workshop", en:"Siege Workshop", vn:"Xưởng công thành", a:3, from:"Dân xây", d:"Chế tạo Stone Thrower và Ballista cùng các nâng cấp.", s:"", w:"" },
+  { g:"aoe1", c:"build", k:"wonder", en:"Wonder", vn:"Kỳ quan", a:4, from:"Dân xây", d:"Công trình rất đắt. Giữ được đến hết thời gian đếm ngược là thắng trận (nếu bật điều kiện kỳ quan).", s:"Cách thắng khi đánh không lại", w:"Cả bản đồ sẽ kéo tới phá" },
+  { g:"aoe1", c:"def", k:"wall", en:"Small Wall", vn:"Tường thành", line:["Small Wall","Medium Wall","Fortified Wall"], a:2, from:"Dân xây", d:"Chặn đường quân địch, câu giờ cho tháp và quân mình. Nâng dần lên Medium và Fortified Wall.", s:"Rẻ, chặn rush", w:"Catapult, kiếm sĩ, voi" },
+  { g:"aoe1", c:"def", k:"tower", en:"Watch Tower", vn:"Tháp canh", line:["Watch Tower","Sentry Tower","Guard Tower","Ballista Tower"], a:2, from:"Dân xây", d:"Tháp bắn tên. Nâng dần thành Sentry, Guard và Ballista Tower. Xây sát mỏ của đối thủ là lối tower rush quen thuộc.", s:"Dân, Scout, cung thủ đời đầu", w:"Catapult, Slinger, dân đông kéo tới phá" },
+  { g:"aoe1", c:"eco", k:"villager", en:"Villager", vn:"Dân", a:1, from:"Nhà chính", d:"Đốn gỗ, hái quả, săn bắn, đánh cá ven bờ, đào vàng đá, xây và sửa công trình.", s:"Ra liên tục là chìa khóa của mọi chiến thuật", w:"Mọi quân lính" },
+  { g:"aoe1", c:"inf", k:"clubman", en:"Clubman", vn:"Lính chùy", line:["Clubman","Axeman"], a:1, from:"Trại lính", d:"Lính rẻ nhất, chỉ tốn thức ăn. Nâng Battle Axe thành Axeman ở đời Công Cụ.", s:"Dân, Scout, rush sớm", w:"Cung thủ, kỵ binh, tháp" },
+  { g:"aoe1", c:"inf", k:"short-swordsman", en:"Short Swordsman", vn:"Kiếm sĩ", line:["Short Swordsman","Broad Swordsman","Long Swordsman","Legionary"], a:3, from:"Trại lính", d:"Bộ binh kiếm, tốn ít vàng. Đánh nhà và Priest rất tốt. Legionary của La Mã và Choson là bộ binh cuối trận đáng sợ.", s:"Công trình, Priest, bộ binh nhẹ", w:"Cung thủ, Catapult, Centurion" },
+  { g:"aoe1", c:"inf", k:"hoplite", en:"Hoplite", vn:"Lính giáp Hoplite", line:["Hoplite","Phalanx","Centurion"], a:3, from:"Học viện", d:"Bộ binh giáp dày, công mạnh, chậm. Nâng lên Phalanx và Centurion. Hy Lạp, Macedonia, Carthage chơi dòng này mạnh nhất.", s:"Mọi quân cận chiến, kể cả kỵ binh", w:"Cung thủ, Horse Archer, Catapult, Priest" },
+  { g:"aoe1", c:"inf", k:"slinger", en:"Slinger", vn:"Lính ném đá", a:2, from:"Trại lính", x:true, d:"Ném đá tầm xa, rẻ, không tốn gỗ. Có thêm sát thương vào cung thủ, tường và tháp.", s:"Cung thủ, tháp, tường", w:"Kỵ binh, bộ binh cận chiến" },
+  { g:"aoe1", c:"arch", k:"bowman", en:"Bowman", vn:"Cung thủ", a:2, from:"Trường bắn", d:"Cung thủ đầu tiên, rẻ. Hay dùng để Tool rush quấy dân.", s:"Dân, Clubman, Axeman", w:"Slinger, Scout, tháp" },
+  { g:"aoe1", c:"arch", k:"improved-bowman", en:"Improved Bowman", vn:"Cung thủ cải tiến", line:["Improved Bowman","Composite Bowman"], a:3, from:"Trường bắn", d:"Cung tầm xa hơn, tốn vàng. Composite Bowman của Minoan bắn xa nhất game.", s:"Bộ binh chậm, Priest, Catapult", w:"Slinger, kỵ binh, Catapult" },
+  { g:"aoe1", c:"arch", k:"chariot-archer", en:"Chariot Archer", vn:"Xe cung", a:3, from:"Trường bắn", d:"Cung trên xe ngựa, nhanh, không tốn vàng. Đơn vị chủ lực đời Đồng của nhiều phe. Khó bị Priest chuyển đổi.", s:"Bộ binh, Priest, cung thủ thường", w:"Camel, Slinger, Catapult" },
+  { g:"aoe1", c:"arch", k:"horse-archer", en:"Horse Archer", vn:"Kỵ cung", line:["Horse Archer","Heavy Horse Archer"], a:4, from:"Trường bắn", d:"Cung cưỡi ngựa nhanh, máu khá. Heavy Horse Archer là một trong những đơn vị mạnh nhất đời Sắt.", s:"Bộ binh chậm, Hoplite, Catapult", w:"Heavy Cavalry, Slinger, Ballista" },
+  { g:"aoe1", c:"arch", k:"elephant-archer", en:"Elephant Archer", vn:"Voi cung", a:4, from:"Trường bắn", d:"Cung trên lưng voi, máu rất dày nhưng chậm và đắt.", s:"Bộ binh, cung thủ, quân cận chiến", w:"Priest, Camel, Catapult" },
+  { g:"aoe1", c:"cav", k:"scout", en:"Scout", vn:"Kỵ do thám", a:2, from:"Chuồng ngựa", d:"Ngựa nhanh, tầm nhìn xa. Dùng để tìm tài nguyên, giết dân và đuổi cung thủ đời Công Cụ.", s:"Dân, Bowman, Priest", w:"Clubman, Axeman, tháp" },
+  { g:"aoe1", c:"cav", k:"cavalry", en:"Cavalry", vn:"Kỵ binh", line:["Cavalry","Heavy Cavalry","Cataphract"], a:3, from:"Chuồng ngựa", d:"Kỵ binh cận chiến cân bằng, nhanh và trâu. Nâng lên Heavy Cavalry và Cataphract.", s:"Cung thủ, Catapult, Priest", w:"Camel, Hoplite, Priest khi đứng gần" },
+  { g:"aoe1", c:"cav", k:"chariot", en:"Chariot", vn:"Xe chiến", line:["Chariot","Scythe Chariot"], a:3, from:"Chuồng ngựa", d:"Xe ngựa cận chiến, không tốn vàng, rất khó bị chuyển đổi. Scythe Chariot gây sát thương lan cho quân đứng cạnh.", s:"Priest, bộ binh đứng sát nhau", w:"Camel, Hoplite, cung thủ" },
+  { g:"aoe1", c:"cav", k:"war-elephant", en:"War Elephant", vn:"Voi chiến", line:["War Elephant","Armored Elephant"], a:4, from:"Chuồng ngựa", d:"Máu cực dày, đánh lan, phá nhà mạnh nhưng chậm và đắt. Ba Tư, Phoenicia, Carthage có bonus voi.", s:"Mọi quân cận chiến, công trình", w:"Priest, Camel, cung thủ bắn diều" },
+  { g:"aoe1", c:"cav", k:"camel-rider", en:"Camel Rider", vn:"Kỵ lạc đà", a:3, from:"Chuồng ngựa", x:true, d:"Lạc đà nhanh, có sát thương thêm vào kỵ binh, xe chiến và voi.", s:"Cavalry, Chariot, voi", w:"Bộ binh, cung thủ" },
+  { g:"aoe1", c:"siege", k:"stone-thrower", en:"Stone Thrower", vn:"Máy bắn đá", line:["Stone Thrower","Catapult","Heavy Catapult"], a:3, from:"Xưởng công thành", d:"Bắn đá tầm xa, gây sát thương lan. Phá nhà, tháp và cụm quân đứng sát. Nâng lên Catapult và Heavy Catapult.", s:"Công trình, tháp, quân đứng cụm", w:"Kỵ binh, Scout lao vào áp sát" },
+  { g:"aoe1", c:"siege", k:"ballista", en:"Ballista", vn:"Nỏ lớn", line:["Ballista","Helepolis"], a:4, from:"Xưởng công thành", d:"Nỏ công thành bắn nhanh, chính xác. Helepolis bắn rất nhanh, quét bộ binh và voi.", s:"Bộ binh, voi, quân lớn", w:"Kỵ binh áp sát, Catapult" },
+  { g:"aoe1", c:"monk", k:"priest", en:"Priest", vn:"Thầy tu", a:3, from:"Đền thờ", d:"Chuyển đổi quân địch thành quân mình và hồi máu quân mình. Chuyển đổi xong phải chờ hồi phép.", s:"Voi, Centurion, Catapult, quân đắt", w:"Chariot, Scout, kiếm sĩ, cung" },
+  { g:"aoe1", c:"naval", k:"fishing-boat", en:"Fishing Boat", vn:"Tàu cá", line:["Fishing Boat","Fishing Ship"], a:1, from:"Bến tàu", d:"Đánh cá ngoài biển. Nâng thành Fishing Ship ở đời Công Cụ.", s:"Thức ăn nhanh trên bản đồ nước", w:"Mọi tàu chiến" },
+  { g:"aoe1", c:"naval", k:"trade-boat", en:"Trade Boat", vn:"Tàu buôn", line:["Trade Boat","Merchant Ship"], a:3, from:"Bến tàu", d:"Chở tài nguyên tới Bến tàu khác để đổi lấy vàng. Đường càng xa càng lời.", s:"Vàng khi hết mỏ", w:"Tàu chiến" },
+  { g:"aoe1", c:"naval", k:"light-transport", en:"Light Transport", vn:"Tàu vận chuyển", line:["Light Transport","Heavy Transport"], a:2, from:"Bến tàu", d:"Chở dân và quân qua biển, cần trên bản đồ đảo.", s:"", w:"Không có vũ khí" },
+  { g:"aoe1", c:"naval", k:"scout-ship", en:"Scout Ship", vn:"Tàu chiến", line:["Scout Ship","War Galley","Trireme"], a:2, from:"Bến tàu", d:"Tàu bắn tên, giữ biển và bảo vệ tàu cá. Nâng lên War Galley và Trireme.", s:"Tàu cá, tàu vận chuyển, quân trên bờ", w:"Catapult Trireme, Fire Galley, tháp ven bờ" },
+  { g:"aoe1", c:"naval", k:"catapult-trireme", en:"Catapult Trireme", vn:"Tàu bắn đá", line:["Catapult Trireme","Juggernaut"], a:4, from:"Bến tàu", d:"Tàu bắn đá tầm xa, phá nhà ven biển và cụm tàu. Juggernaut là bản nâng cấp mạnh nhất.", s:"Công trình ven bờ, tàu đứng cụm", w:"Fire Galley, Trireme áp sát" },
+  { g:"aoe1", c:"naval", k:"fire-galley", en:"Fire Galley", vn:"Tàu lửa", a:4, from:"Bến tàu", x:true, d:"Tàu phun lửa tầm gần, sát thương rất cao vào tàu khác. Carthage có thêm 25% công.", s:"Tàu chiến, nhất là Catapult Trireme", w:"Tháp ven bờ, Trireme bắn từ xa" },
+
+  // ================= AoE II =================
+  { g:"aoe2", c:"build", k:"town-center", en:"Town Center", vn:"Nhà chính", a:1, from:"Dân xây", d:"Ra dân, lên đời, nơi đổ tài nguyên. Tự bắn tên, càng nhiều dân trốn vào càng bắn nhiều. Từ đời Lâu Đài xây được thêm Nhà chính.", s:"Dân trốn vào để đuổi rush", w:"Ram, Trebuchet, Bombard Cannon" },
+  { g:"aoe2", c:"build", k:"house", en:"House", vn:"Nhà", a:1, from:"Dân xây", d:"Mỗi nhà +5 chỗ dân. Người Hung không cần xây nhà.", s:"", w:"" },
+  { g:"aoe2", c:"build", k:"mill", en:"Mill", vn:"Nhà xay", a:1, from:"Dân xây", d:"Nơi đổ quả và thức ăn từ ruộng. Nghiên cứu Horse Collar, Heavy Plow, Crop Rotation và đặt ruộng trước.", s:"Xây cạnh bụi quả", w:"" },
+  { g:"aoe2", c:"build", k:"lumber-camp", en:"Lumber Camp", vn:"Trại gỗ", a:1, from:"Dân xây", d:"Nơi đổ gỗ. Nghiên cứu Double-Bit Axe, Bow Saw, Two-Man Saw.", s:"Xây sát bìa rừng", w:"" },
+  { g:"aoe2", c:"build", k:"mining-camp", en:"Mining Camp", vn:"Trại mỏ", a:1, from:"Dân xây", d:"Nơi đổ vàng và đá. Nghiên cứu nâng cấp đào vàng, đào đá.", s:"", w:"" },
+  { g:"aoe2", c:"eco", k:"farm", en:"Farm", vn:"Ruộng", a:1, from:"Dân xây", d:"Nguồn thức ăn chính từ giữa trận. Đặt quanh Nhà chính và Nhà xay.", s:"Teuton rẻ 40%, Frank nâng cấp miễn phí", w:"Kỵ binh địch đi quấy dân ruộng" },
+  { g:"aoe2", c:"build", k:"dock", en:"Dock", vn:"Bến tàu", a:1, from:"Dân xây", d:"Đóng tàu cá, tàu buôn, tàu vận chuyển và tàu chiến. Nghiên cứu công nghệ hải quân.", s:"", w:"" },
+  { g:"aoe2", c:"build", k:"barracks", en:"Barracks", vn:"Trại lính", a:1, from:"Dân xây", d:"Huấn luyện Militia, Spearman, Eagle Scout và các nâng cấp bộ binh.", s:"Cần có để xây Trường bắn và Chuồng ngựa", w:"" },
+  { g:"aoe2", c:"build", k:"archery-range", en:"Archery Range", vn:"Trường bắn", a:2, from:"Dân xây", d:"Huấn luyện Archer, Skirmisher, Cavalry Archer, Hand Cannoneer.", s:"", w:"" },
+  { g:"aoe2", c:"build", k:"stable", en:"Stable", vn:"Chuồng ngựa", a:2, from:"Dân xây", d:"Huấn luyện Scout Cavalry, Knight, Camel Rider. Aztec và Maya không có Chuồng ngựa.", s:"", w:"" },
+  { g:"aoe2", c:"build", k:"blacksmith", en:"Blacksmith", vn:"Lò rèn", a:2, from:"Dân xây", d:"Nâng công và giáp cho bộ binh, cung thủ và kỵ binh.", s:"Tây Ban Nha nâng cấp không tốn vàng", w:"" },
+  { g:"aoe2", c:"build", k:"market", en:"Market", vn:"Chợ", a:2, from:"Dân xây", d:"Mua bán, đổi tài nguyên, ra Trade Cart để kiếm vàng, nghiên cứu Coinage, Banking, Guilds.", s:"Saracen đổi tài nguyên gần như không mất phí", w:"" },
+  { g:"aoe2", c:"build", k:"monastery", en:"Monastery", vn:"Tu viện", a:3, from:"Dân xây", d:"Đào tạo Monk, cất giữ thánh tích (Relic) để nhận vàng, nghiên cứu Redemption, Atonement, Sanctity…", s:"Mỗi thánh tích sinh vàng đều đặn", w:"" },
+  { g:"aoe2", c:"build", k:"university", en:"University", vn:"Đại học", a:3, from:"Dân xây", d:"Nghiên cứu Ballistics, Chemistry, Masonry, Murder Holes, Siege Engineers và nâng cấp tháp.", s:"Ballistics giúp cung bắn trúng quân đang chạy", w:"" },
+  { g:"aoe2", c:"build", k:"siege-workshop", en:"Siege Workshop", vn:"Xưởng công thành", a:3, from:"Dân xây", d:"Chế tạo Battering Ram, Mangonel, Scorpion, Bombard Cannon.", s:"", w:"" },
+  { g:"aoe2", c:"build", k:"castle", en:"Castle", vn:"Lâu đài", a:3, from:"Dân xây", d:"Pháo đài bắn nhiều tên, ra đơn vị riêng, Trebuchet và Petard, nghiên cứu 2 công nghệ riêng.", s:"Giữ đất, khắc chế mọi quân đánh gần", w:"Trebuchet, Bombard Cannon, Petard, Ram đông" },
+  { g:"aoe2", c:"build", k:"wonder", en:"Wonder", vn:"Kỳ quan", a:4, from:"Dân xây", d:"Giữ kỳ quan đủ thời gian đếm ngược là thắng trận.", s:"", w:"Trebuchet" },
+  { g:"aoe2", c:"def", k:"palisade-wall", en:"Palisade Wall", vn:"Tường gỗ", a:1, from:"Dân xây", d:"Tường gỗ rẻ, xây nhanh, dùng để chặn rush đầu trận.", s:"Rẻ, câu giờ", w:"Mọi quân cận chiến chặt nhanh" },
+  { g:"aoe2", c:"def", k:"stone-wall", en:"Stone Wall", vn:"Tường đá", line:["Stone Wall","Fortified Wall"], a:2, from:"Dân xây", d:"Tường đá chắc, nâng thành Fortified Wall ở đời Lâu Đài.", s:"Chặn quân, bảo vệ dân", w:"Ram, Trebuchet, bộ binh phá nhà" },
+  { g:"aoe2", c:"def", k:"gate", en:"Gate", vn:"Cổng", a:2, from:"Dân xây", d:"Cổng trên tường đá, tự mở cho quân mình đi qua, có thể khóa lại.", s:"", w:"" },
+  { g:"aoe2", c:"def", k:"outpost", en:"Outpost", vn:"Chòi canh", a:1, from:"Dân xây", d:"Chòi gác rẻ, tầm nhìn xa, không tấn công.", s:"Quan sát đường địch tới", w:"Không bắn" },
+  { g:"aoe2", c:"def", k:"watch-tower", en:"Watch Tower", vn:"Tháp canh", line:["Watch Tower","Guard Tower","Keep"], a:2, from:"Dân xây", d:"Tháp bắn tên, cho dân trốn vào để bắn thêm. Nâng lên Guard Tower và Keep. Hay dùng để tower rush.", s:"Dân, Scout, cung thủ đầu trận", w:"Ram, Mangonel, Trebuchet" },
+  { g:"aoe2", c:"def", k:"bombard-tower", en:"Bombard Tower", vn:"Tháp pháo", a:4, from:"Dân xây (cần Chemistry)", d:"Tháp bắn đạn pháo, sát thương rất cao vào quân và tàu.", s:"Kỵ binh, tàu, bộ binh", w:"Trebuchet, Bombard Cannon" },
+  { g:"aoe2", c:"eco", k:"villager", en:"Villager", vn:"Dân", a:1, from:"Nhà chính", d:"Khai thác mọi tài nguyên, xây và sửa công trình. Nâng Loom để dân trâu hơn trước rush.", s:"Ra liên tục đến 100–130 dân", w:"Mọi quân" },
+  { g:"aoe2", c:"eco", k:"fishing-ship", en:"Fishing Ship", vn:"Tàu cá", a:1, from:"Bến tàu", d:"Đánh cá ngoài biển hoặc ở bẫy cá. Nhật Bản có tàu cá trâu và nhanh nhất.", s:"Thức ăn không cần ruộng", w:"Galley, Fire Ship" },
+  { g:"aoe2", c:"eco", k:"trade-cart", en:"Trade Cart", vn:"Xe buôn", a:2, from:"Chợ", d:"Đi lại giữa hai Chợ để kiếm vàng. Đường càng xa càng nhiều vàng. Nguồn vàng chính khi mỏ cạn.", s:"Vàng vô hạn cuối trận", w:"Kỵ binh, cung đi quấy" },
+  { g:"aoe2", c:"naval", k:"trade-cog", en:"Trade Cog", vn:"Tàu buôn", a:2, from:"Bến tàu", d:"Tàu buôn đi giữa các Bến tàu để kiếm vàng.", s:"", w:"Tàu chiến" },
+  { g:"aoe2", c:"naval", k:"transport-ship", en:"Transport Ship", vn:"Tàu vận chuyển", a:1, from:"Bến tàu", d:"Chở dân và quân qua biển trên bản đồ đảo.", s:"", w:"Không có vũ khí" },
+  { g:"aoe2", c:"inf", k:"militia", en:"Militia", vn:"Dân quân", line:["Militia","Man-at-Arms","Long Swordsman","Two-Handed Swordsman","Champion"], a:1, from:"Trại lính", d:"Bộ binh kiếm. Man-at-Arms hay dùng để rush ở Phong Kiến, Champion là bộ binh mạnh cuối trận.", s:"Bộ binh khác, Spearman, Skirmisher, công trình", w:"Cung thủ, Hand Cannoneer, Mangonel" },
+  { g:"aoe2", c:"inf", k:"spearman", en:"Spearman", vn:"Lính giáo", line:["Spearman","Pikeman","Halberdier"], a:2, from:"Trại lính", d:"Lính giáo rẻ, sát thương thêm rất lớn vào kỵ binh, voi và lạc đà.", s:"Knight, Camel, voi, Scout", w:"Cung thủ, Militia, Mangonel" },
+  { g:"aoe2", c:"inf", k:"eagle-scout", en:"Eagle Scout", vn:"Chiến binh Đại bàng", line:["Eagle Scout","Eagle Warrior","Elite Eagle Warrior"], a:2, from:"Trại lính", x:true, d:"Thay kỵ binh cho Aztec và Maya. Chạy nhanh, giáp tên dày, có sát thương thêm vào Monk.", s:"Cung thủ, Monk, công thành", w:"Militia, Champion, Jaguar Warrior" },
+  { g:"aoe2", c:"arch", k:"archer", en:"Archer", vn:"Cung thủ", line:["Archer","Crossbowman","Arbalester"], a:2, from:"Trường bắn", d:"Cung tầm xa, đông thì rất mạnh. Crossbowman là đơn vị chủ lực đời Lâu Đài của nhiều phe.", s:"Bộ binh, Spearman, Monk", w:"Skirmisher, Mangonel, kỵ binh" },
+  { g:"aoe2", c:"arch", k:"skirmisher", en:"Skirmisher", vn:"Lính ném lao", line:["Skirmisher","Elite Skirmisher","Imperial Skirmisher"], a:2, from:"Trường bắn", d:"Lính ném lao rẻ, không tốn vàng, sát thương thêm vào cung thủ. Imperial Skirmisher chỉ có ở một số phe.", s:"Cung thủ, kỵ cung", w:"Kỵ binh, bộ binh, Mangonel" },
+  { g:"aoe2", c:"arch", k:"cavalry-archer", en:"Cavalry Archer", vn:"Kỵ cung", line:["Cavalry Archer","Heavy Cavalry Archer"], a:3, from:"Trường bắn", d:"Cung trên ngựa, nhanh, đánh rồi chạy. Cần điều khiển tốt. Mông Cổ, Hung, Thổ Nhĩ Kỳ chơi tốt nhất.", s:"Bộ binh, quân chậm", w:"Skirmisher, Camel, Hussar" },
+  { g:"aoe2", c:"arch", k:"hand-cannoneer", en:"Hand Cannoneer", vn:"Lính súng", a:4, from:"Trường bắn (cần Chemistry)", d:"Lính súng sát thương rất cao, nhất là vào bộ binh, nhưng bắn không chuẩn ở tầm xa.", s:"Bộ binh, Spearman", w:"Kỵ binh, Mangonel, Skirmisher" },
+  { g:"aoe2", c:"cav", k:"scout-cavalry", en:"Scout Cavalry", vn:"Kỵ do thám", line:["Scout Cavalry","Light Cavalry","Hussar"], a:1, from:"Chuồng ngựa", d:"Ngựa nhanh, rẻ, không tốn vàng. Đi do thám, giết dân, giết Monk. Hussar là quân rẻ chủ lực cuối trận.", s:"Dân, cung thủ, Monk, công thành", w:"Spearman, Camel, Knight" },
+  { g:"aoe2", c:"cav", k:"knight", en:"Knight", vn:"Hiệp sĩ", line:["Knight","Cavalier","Paladin"], a:3, from:"Chuồng ngựa", d:"Kỵ binh nặng, nhanh, máu và giáp dày. Đơn vị chủ lực đời Lâu Đài của nhiều phe.", s:"Cung thủ, công thành, Skirmisher, dân", w:"Pikeman, Camel, Monk" },
+  { g:"aoe2", c:"cav", k:"camel-rider", en:"Camel Rider", vn:"Kỵ lạc đà", line:["Camel Rider","Heavy Camel Rider","Imperial Camel Rider"], a:3, from:"Chuồng ngựa", d:"Lạc đà có sát thương thêm vào kỵ binh. Ngựa của đối phương sợ lạc đà. Imperial Camel chỉ có ở một số phe.", s:"Knight, Scout, kỵ cung", w:"Bộ binh, cung thủ, Pikeman" },
+  { g:"aoe2", c:"siege", k:"battering-ram", en:"Battering Ram", vn:"Xe húc", line:["Battering Ram","Capped Ram","Siege Ram"], a:3, from:"Xưởng công thành", d:"Xe húc phá nhà, miễn nhiễm gần hết sát thương tên. Cho bộ binh vào trong để xe chạy nhanh hơn.", s:"Công trình, Lâu đài, tháp", w:"Bộ binh và kỵ binh cận chiến, Bombard Cannon" },
+  { g:"aoe2", c:"siege", k:"mangonel", en:"Mangonel", vn:"Máy bắn đá", line:["Mangonel","Onager","Siege Onager"], a:3, from:"Xưởng công thành", d:"Bắn đá sát thương lan, xóa cụm cung thủ và bộ binh. Siege Onager còn chặt được rừng.", s:"Cung thủ đứng cụm, bộ binh", w:"Kỵ binh, Mangonel địch, Bombard Cannon" },
+  { g:"aoe2", c:"siege", k:"scorpion", en:"Scorpion", vn:"Nỏ lớn", line:["Scorpion","Heavy Scorpion"], a:3, from:"Xưởng công thành", d:"Bắn tên xuyên qua nhiều quân xếp hàng. Mạnh với bộ binh đông.", s:"Bộ binh, quân đứng thành hàng", w:"Kỵ binh, Mangonel" },
+  { g:"aoe2", c:"siege", k:"bombard-cannon", en:"Bombard Cannon", vn:"Đại pháo", a:4, from:"Xưởng công thành (cần Chemistry)", d:"Pháo tầm xa phá nhà và bắn cả quân. Thổ Nhĩ Kỳ có thêm tầm bắn.", s:"Công trình, công thành địch", w:"Kỵ binh, Lâu đài Teuton" },
+  { g:"aoe2", c:"siege", k:"trebuchet", en:"Trebuchet", vn:"Máy bắn đá lớn", a:4, from:"Lâu đài", d:"Máy bắn đá tầm xa nhất, phải dựng lên mới bắn được. Công cụ chính để phá Lâu đài.", s:"Lâu đài, tháp, mọi công trình", w:"Kỵ binh, Bombard Cannon, quân lao tới" },
+  { g:"aoe2", c:"siege", k:"petard", en:"Petard", vn:"Lính bom", a:3, from:"Lâu đài", x:true, d:"Lính mang thuốc nổ, tự nổ để phá tường, cổng và công trình.", s:"Tường, cổng, Lâu đài", w:"Mọi quân, tên của tháp" },
+  { g:"aoe2", c:"monk", k:"monk", en:"Monk", vn:"Thầy tu", a:3, from:"Tu viện", d:"Chuyển đổi quân địch, hồi máu quân mình và nhặt thánh tích. Có Redemption thì chuyển đổi được cả công thành.", s:"Knight, voi, Paladin, quân chậm và đắt", w:"Kỵ binh nhẹ, Eagle Warrior, cung thủ" },
+  { g:"aoe2", c:"naval", k:"galley", en:"Galley", vn:"Thuyền chiến", line:["Galley","War Galley","Galleon"], a:2, from:"Bến tàu", d:"Tàu bắn tên, đánh tàu cá và giữ biển.", s:"Tàu cá, Fire Ship ở xa", w:"Fire Ship áp sát, Demolition Ship" },
+  { g:"aoe2", c:"naval", k:"fire-ship", en:"Fire Ship", vn:"Tàu lửa", line:["Fire Ship","Fast Fire Ship"], a:3, from:"Bến tàu", d:"Phun lửa tầm gần, sát thương rất cao vào tàu khác.", s:"Galley, Galleon", w:"Cannon Galleon, Demolition Ship" },
+  { g:"aoe2", c:"naval", k:"demolition-ship", en:"Demolition Ship", vn:"Tàu tự nổ", line:["Demolition Ship","Heavy Demolition Ship"], a:3, from:"Bến tàu", d:"Tàu chở thuốc nổ, lao vào cụm tàu hoặc công trình ven bờ rồi nổ tung.", s:"Cụm tàu đứng sát nhau", w:"Galley bắn từ xa" },
+  { g:"aoe2", c:"naval", k:"cannon-galleon", en:"Cannon Galleon", vn:"Tàu pháo", line:["Cannon Galleon","Elite Cannon Galleon"], a:4, from:"Bến tàu (cần Chemistry)", d:"Tàu pháo tầm xa, phá nhà và tháp ven bờ.", s:"Công trình ven bờ", w:"Galleon, Fire Ship, tàu nhỏ" },
+  // đơn vị riêng
+  { g:"aoe2", c:"uu", k:"longbowman", uu:"britons", en:"Longbowman", vn:"Cung dài", a:3, from:"Lâu đài", d:"Cung tầm xa nhất game. Elite Longbowman có tầm 11 khi đủ nâng cấp.", s:"Bộ binh, cung thủ, đánh từ ngoài tầm", w:"Kỵ binh, Mangonel, Skirmisher áp sát" },
+  { g:"aoe2", c:"uu", k:"cataphract", uu:"byzantines", en:"Cataphract", vn:"Kỵ giáp nặng", a:3, from:"Lâu đài", d:"Kỵ nặng gần như miễn sát thương thêm của Spearman, diệt bộ binh và Camel.", s:"Bộ binh, Pikeman, Camel", w:"Cung thủ, Monk, Mameluke" },
+  { g:"aoe2", c:"uu", k:"woad-raider", uu:"celts", en:"Woad Raider", vn:"Chiến binh Woad", a:3, from:"Lâu đài", d:"Bộ binh chạy nhanh như kỵ binh, đi phá dân và công thành.", s:"Dân, công thành, bộ binh", w:"Cung thủ, Cataphract, Jaguar" },
+  { g:"aoe2", c:"uu", k:"chu-ko-nu", uu:"chinese", en:"Chu Ko Nu", vn:"Nỏ liên châu", a:3, from:"Lâu đài", d:"Bắn nhiều mũi tên mỗi lượt, sát thương lớn ở tầm gần.", s:"Bộ binh, quân đứng cụm, Spearman", w:"Mangonel, Skirmisher, kỵ binh" },
+  { g:"aoe2", c:"uu", k:"throwing-axeman", uu:"franks", en:"Throwing Axeman", vn:"Lính ném rìu", a:3, from:"Lâu đài", d:"Bộ binh đánh tầm xa bằng rìu, sát thương cận chiến nên không bị giáp tên chặn.", s:"Bộ binh, công trình, Huskarl", w:"Cung thủ, kỵ binh, Mangonel" },
+  { g:"aoe2", c:"uu", k:"huskarl", uu:"goths", en:"Huskarl", vn:"Lính Huskarl", a:3, from:"Lâu đài (Trại lính khi có Anarchy)", d:"Bộ binh giáp tên rất dày, sát thương thêm vào cung thủ.", s:"Cung thủ, công trình, Skirmisher", w:"Bộ binh, kỵ binh, Hand Cannoneer" },
+  { g:"aoe2", c:"uu", k:"samurai", uu:"japanese", en:"Samurai", vn:"Võ sĩ", a:3, from:"Lâu đài", d:"Bộ binh đánh rất nhanh, sát thương thêm vào mọi đơn vị riêng.", s:"Đơn vị riêng, bộ binh", w:"Cung thủ, Cataphract" },
+  { g:"aoe2", c:"uu", k:"mangudai", uu:"mongols", en:"Mangudai", vn:"Kỵ cung Mangudai", a:3, from:"Lâu đài", d:"Kỵ cung nhanh, bắn nhanh, sát thương thêm vào công thành.", s:"Công thành, bộ binh, Pikeman", w:"Skirmisher, Camel, Huskarl" },
+  { g:"aoe2", c:"uu", k:"war-elephant", uu:"persians", en:"War Elephant", vn:"Voi chiến", a:3, from:"Lâu đài", d:"Voi cực trâu, đánh lan, phá nhà nhưng rất chậm và đắt.", s:"Mọi quân cận chiến, công trình", w:"Monk, Pikeman, Halberdier" },
+  { g:"aoe2", c:"uu", k:"mameluke", uu:"saracens", en:"Mameluke", vn:"Lạc đà Mameluke", a:3, from:"Lâu đài", d:"Kỵ lạc đà ném kiếm tầm gần, sát thương thêm vào kỵ binh.", s:"Knight, Paladin, kỵ binh", w:"Bộ binh, Pikeman, cung thủ" },
+  { g:"aoe2", c:"uu", k:"teutonic-knight", uu:"teutons", en:"Teutonic Knight", vn:"Hiệp sĩ Teuton", a:3, from:"Lâu đài", d:"Bộ binh giáp cận chiến cực dày, công cao, rất chậm.", s:"Bộ binh, kỵ binh cận chiến", w:"Cung thủ, Hand Cannoneer, Monk" },
+  { g:"aoe2", c:"uu", k:"janissary", uu:"turks", en:"Janissary", vn:"Lính súng Janissary", a:3, from:"Lâu đài", d:"Lính súng có từ đời Lâu Đài, tầm xa hơn Hand Cannoneer.", s:"Bộ binh, kỵ binh, Spearman", w:"Mangonel, Skirmisher, Huskarl" },
+  { g:"aoe2", c:"uu", k:"berserk", uu:"vikings", en:"Berserk", vn:"Chiến binh Berserk", a:3, from:"Lâu đài", d:"Bộ binh tự hồi máu, chỉ số tốt mọi mặt.", s:"Bộ binh, kỵ binh (có Chieftains)", w:"Cung thủ, Cataphract" },
+  { g:"aoe2", c:"uu", k:"longboat", uu:"vikings", en:"Longboat", vn:"Thuyền dài", a:3, from:"Bến tàu", d:"Tàu bắn nhiều mũi tên cùng lúc, chạy nhanh.", s:"Tàu cá, Galley, quân trên bờ", w:"Fire Ship, Demolition Ship" },
+  { g:"aoe2", c:"uu", k:"jaguar-warrior", uu:"aztecs", en:"Jaguar Warrior", vn:"Chiến binh Báo đốm", a:3, from:"Lâu đài", x:true, d:"Bộ binh có sát thương thêm rất lớn vào bộ binh khác.", s:"Bộ binh, Huskarl, Samurai", w:"Cung thủ, kỵ binh" },
+  { g:"aoe2", c:"uu", k:"tarkan", uu:"huns", en:"Tarkan", vn:"Kỵ binh Tarkan", a:3, from:"Lâu đài (Chuồng ngựa khi có Marauders)", x:true, d:"Kỵ binh giáp tên dày, chuyên phá tháp, Lâu đài và công trình.", s:"Công trình, tháp, cung thủ", w:"Pikeman, Camel, Knight" },
+  { g:"aoe2", c:"uu", k:"war-wagon", uu:"koreans", en:"War Wagon", vn:"Xe chiến", a:3, from:"Lâu đài", x:true, d:"Xe bắn tên giáp dày, máu trâu.", s:"Bộ binh, cung thủ", w:"Camel, Mangonel, Bombard Cannon" },
+  { g:"aoe2", c:"uu", k:"turtle-ship", uu:"koreans", en:"Turtle Ship", vn:"Thuyền rùa", a:3, from:"Bến tàu", x:true, d:"Tàu bắn đạn tầm gần, cực trâu, chậm.", s:"Mọi tàu", w:"Tàu tầm xa, Bombard Tower" },
+  { g:"aoe2", c:"uu", k:"plumed-archer", uu:"mayans", en:"Plumed Archer", vn:"Cung thủ Lông vũ", a:3, from:"Lâu đài", x:true, d:"Cung thủ chạy nhanh, máu và giáp tên cao hơn cung thường.", s:"Bộ binh, cung thủ, Monk", w:"Mangonel, kỵ binh, Skirmisher" },
+  { g:"aoe2", c:"uu", k:"conquistador", uu:"spanish", en:"Conquistador", vn:"Kỵ binh súng", a:3, from:"Lâu đài", x:true, d:"Kỵ binh mang súng, sát thương rất cao, chạy nhanh.", s:"Bộ binh, dân, Pikeman", w:"Skirmisher, Camel, Mangonel" },
+  { g:"aoe2", c:"uu", k:"missionary", uu:"spanish", en:"Missionary", vn:"Thầy tu cưỡi ngựa", a:3, from:"Tu viện", x:true, d:"Monk cưỡi ngựa, chạy nhanh hơn, không nhặt được thánh tích.", s:"Quân chậm và đắt", w:"Kỵ binh nhẹ, cung thủ" },
+];
+
+const IMG = /*@IMG*/{"aoe1:town-center":{"cameo":"aoe-anh/aoe1/cameo/town-center.webp","page":"Town Center (Age of Empires)"},"aoe1:house":{"cameo":"aoe-anh/aoe1/cameo/house.webp","page":"House (Age of Empires)"},"aoe1:granary":{"cameo":"aoe-anh/aoe1/cameo/granary.webp","page":"Granary (Age of Empires)"},"aoe1:storage-pit":{"cameo":"aoe-anh/aoe1/cameo/storage-pit.webp","page":"Storage Pit (Age of Empires)"},"aoe1:dock":{"cameo":"aoe-anh/aoe1/cameo/dock.webp","page":"Dock (Age of Empires)"},"aoe1:barracks":{"cameo":"aoe-anh/aoe1/cameo/barracks.webp","page":"Barracks (Age of Empires)"},"aoe1:archery-range":{"cameo":"aoe-anh/aoe1/cameo/archery-range.webp","page":"Archery Range (Age of Empires)"},"aoe1:stable":{"cameo":"aoe-anh/aoe1/cameo/stable.webp","page":"Stable (Age of Empires)"},"aoe1:market":{"cameo":"aoe-anh/aoe1/cameo/market.webp","page":"Market (Age of Empires)"},"aoe1:farm":{"cameo":"aoe-anh/aoe1/cameo/farm.webp","page":"Farm (Age of Empires)"},"aoe1:temple":{"cameo":"aoe-anh/aoe1/cameo/temple.webp","page":"Temple (Age of Empires)"},"aoe1:government-center":{"cameo":"aoe-anh/aoe1/cameo/government-center.webp","page":"Government Center"},"aoe1:academy":{"cameo":"aoe-anh/aoe1/cameo/academy.webp","page":"Academy (Age of Empires)"},"aoe1:siege-workshop":{"cameo":"aoe-anh/aoe1/cameo/siege-workshop.webp","page":"Siege Workshop (Age of Empires)"},"aoe1:wonder":{"cameo":"aoe-anh/aoe1/cameo/wonder.webp","page":"Wonder (Age of Empires)"},"aoe1:wall":{"cameo":"aoe-anh/aoe1/cameo/wall.webp","page":"Small Wall"},"aoe1:tower":{"cameo":"aoe-anh/aoe1/cameo/tower.webp","page":"Watch Tower (Age of Empires)"},"aoe1:villager":{"cameo":"aoe-anh/aoe1/cameo/villager.webp","page":"Villager (Age of Empires)"},"aoe1:clubman":{"cameo":"aoe-anh/aoe1/cameo/clubman.webp","page":"Clubman"},"aoe1:short-swordsman":{"cameo":"aoe-anh/aoe1/cameo/short-swordsman.webp","page":"Short Swordsman"},"aoe1:hoplite":{"cameo":"aoe-anh/aoe1/cameo/hoplite.webp","page":"Hoplite (Age of Empires)"},"aoe1:phalangite":{"cameo":"aoe-anh/aoe1/cameo/phalangite.webp","art":"aoe-anh/aoe1/art/phalangite.webp","page":"Phalangite (Age of Empires)"},"aoe1:slinger":{"cameo":"aoe-anh/aoe1/cameo/slinger.webp","page":"Slinger (Age of Empires)"},"aoe1:bowman":{"cameo":"aoe-anh/aoe1/cameo/bowman.webp","page":"Bowman (Age of Empires)"},"aoe1:improved-bowman":{"cameo":"aoe-anh/aoe1/cameo/improved-bowman.webp","page":"Improved Bowman"},"aoe1:chariot-archer":{"cameo":"aoe-anh/aoe1/cameo/chariot-archer.webp","page":"Chariot Archer (Age of Empires)"},"aoe1:horse-archer":{"cameo":"aoe-anh/aoe1/cameo/horse-archer.webp","page":"Horse Archer (Age of Empires)"},"aoe1:elephant-archer":{"cameo":"aoe-anh/aoe1/cameo/elephant-archer.webp","page":"Elephant Archer (Age of Empires)"},"aoe1:scout":{"cameo":"aoe-anh/aoe1/cameo/scout.webp","page":"Scout (Age of Empires)"},"aoe1:cavalry":{"cameo":"aoe-anh/aoe1/cameo/cavalry.webp","page":"Cavalry (Age of Empires)"},"aoe1:chariot":{"cameo":"aoe-anh/aoe1/cameo/chariot.webp","art":"aoe-anh/aoe1/art/chariot.webp","page":"Chariot (Age of Empires)"},"aoe1:war-elephant":{"cameo":"aoe-anh/aoe1/cameo/war-elephant.webp","page":"War Elephant (Age of Empires)"},"aoe1:camel-rider":{"cameo":"aoe-anh/aoe1/cameo/camel-rider.webp","page":"Camel Rider (Age of Empires)"},"aoe1:stone-thrower":{"cameo":"aoe-anh/aoe1/cameo/stone-thrower.webp","page":"Stone Thrower"},"aoe1:ballista":{"cameo":"aoe-anh/aoe1/cameo/ballista.webp","page":"Ballista (Age of Empires)"},"aoe1:priest":{"cameo":"aoe-anh/aoe1/cameo/priest.webp","art":"aoe-anh/aoe1/art/priest.webp","page":"Priest (Age of Empires)"},"aoe1:fishing-boat":{"cameo":"aoe-anh/aoe1/cameo/fishing-boat.webp","page":"Fishing Boat (Age of Empires)"},"aoe1:trade-boat":{"cameo":"aoe-anh/aoe1/cameo/trade-boat.webp","page":"Trade Boat"},"aoe1:light-transport":{"cameo":"aoe-anh/aoe1/cameo/light-transport.webp","page":"Light Transport"},"aoe1:scout-ship":{"cameo":"aoe-anh/aoe1/cameo/scout-ship.webp","page":"Scout Ship (Age of Empires)"},"aoe1:catapult-trireme":{"cameo":"aoe-anh/aoe1/cameo/catapult-trireme.webp","page":"Catapult Trireme"},"aoe1:fire-galley":{"cameo":"aoe-anh/aoe1/cameo/fire-galley.webp","page":"Fire Galley (Age of Empires)"},"aoe2:town-center":{"art":"aoe-anh/aoe2/art/town-center.webp","cameo":"aoe-anh/aoe2/art/town-center.webp","page":"Town Center (Age of Empires II)"},"aoe2:house":{"cameo":"aoe-anh/aoe2/cameo/house.webp","art":"aoe-anh/aoe2/art/house.webp","page":"House (Age of Empires II)"},"aoe2:mill":{"cameo":"aoe-anh/aoe2/cameo/mill.webp","art":"aoe-anh/aoe2/art/mill.webp","page":"Mill (Age of Empires II)"},"aoe2:lumber-camp":{"cameo":"aoe-anh/aoe2/cameo/lumber-camp.webp","art":"aoe-anh/aoe2/art/lumber-camp.webp","page":"Lumber Camp (Age of Empires II)"},"aoe2:mining-camp":{"cameo":"aoe-anh/aoe2/cameo/mining-camp.webp","art":"aoe-anh/aoe2/art/mining-camp.webp","page":"Mining Camp (Age of Empires II)"},"aoe2:farm":{"cameo":"aoe-anh/aoe2/cameo/farm.webp","art":"aoe-anh/aoe2/art/farm.webp","page":"Farm (Age of Empires II)"},"aoe2:dock":{"cameo":"aoe-anh/aoe2/cameo/dock.webp","art":"aoe-anh/aoe2/art/dock.webp","page":"Dock (Age of Empires II)"},"aoe2:barracks":{"art":"aoe-anh/aoe2/art/barracks.webp","cameo":"aoe-anh/aoe2/art/barracks.webp","page":"Barracks (Age of Empires II)"},"aoe2:archery-range":{"cameo":"aoe-anh/aoe2/cameo/archery-range.webp","art":"aoe-anh/aoe2/art/archery-range.webp","page":"Archery Range (Age of Empires II)"},"aoe2:stable":{"cameo":"aoe-anh/aoe2/cameo/stable.webp","art":"aoe-anh/aoe2/art/stable.webp","page":"Stable (Age of Empires II)"},"aoe2:blacksmith":{"art":"aoe-anh/aoe2/art/blacksmith.webp","cameo":"aoe-anh/aoe2/art/blacksmith.webp","page":"Blacksmith (Age of Empires II)"},"aoe2:market":{"cameo":"aoe-anh/aoe2/cameo/market.webp","art":"aoe-anh/aoe2/art/market.webp","page":"Market (Age of Empires II)"},"aoe2:monastery":{"cameo":"aoe-anh/aoe2/cameo/monastery.webp","art":"aoe-anh/aoe2/art/monastery.webp","page":"Monastery (Age of Empires II)"},"aoe2:university":{"cameo":"aoe-anh/aoe2/cameo/university.webp","art":"aoe-anh/aoe2/art/university.webp","page":"University (Age of Empires II)"},"aoe2:siege-workshop":{"cameo":"aoe-anh/aoe2/cameo/siege-workshop.webp","art":"aoe-anh/aoe2/art/siege-workshop.webp","page":"Siege Workshop (Age of Empires II)"},"aoe2:castle":{"cameo":"aoe-anh/aoe2/cameo/castle.webp","art":"aoe-anh/aoe2/art/castle.webp","page":"Castle (Age of Empires II)"},"aoe2:wonder":{"cameo":"aoe-anh/aoe2/cameo/wonder.webp","art":"aoe-anh/aoe2/art/wonder.webp","page":"Wonder (Age of Empires II)"},"aoe2:palisade-wall":{"cameo":"aoe-anh/aoe2/cameo/palisade-wall.webp","art":"aoe-anh/aoe2/art/palisade-wall.webp","page":"Palisade Wall (Age of Empires II)"},"aoe2:stone-wall":{"cameo":"aoe-anh/aoe2/cameo/stone-wall.webp","art":"aoe-anh/aoe2/art/stone-wall.webp","page":"Stone Wall (Age of Empires II)"},"aoe2:gate":{"cameo":"aoe-anh/aoe2/cameo/gate.webp","art":"aoe-anh/aoe2/art/gate.webp","page":"Gate (Age of Empires II)"},"aoe2:outpost":{"cameo":"aoe-anh/aoe2/cameo/outpost.webp","art":"aoe-anh/aoe2/art/outpost.webp","page":"Outpost (Age of Empires II)"},"aoe2:watch-tower":{"cameo":"aoe-anh/aoe2/cameo/watch-tower.webp","page":"Watch Tower (Age of Empires II)"},"aoe2:bombard-tower":{"art":"aoe-anh/aoe2/art/bombard-tower.webp","cameo":"aoe-anh/aoe2/art/bombard-tower.webp","page":"Bombard Tower"},"aoe2:villager":{"art":"aoe-anh/aoe2/art/villager.webp","cameo":"aoe-anh/aoe2/art/villager.webp","page":"Villager (Age of Empires II)"},"aoe2:fishing-ship":{"art":"aoe-anh/aoe2/art/fishing-ship.webp","cameo":"aoe-anh/aoe2/art/fishing-ship.webp","page":"Fishing Ship (Age of Empires II)"},"aoe2:trade-cart":{"art":"aoe-anh/aoe2/art/trade-cart.webp","cameo":"aoe-anh/aoe2/art/trade-cart.webp","page":"Trade Cart (Age of Empires II)"},"aoe2:trade-cog":{"art":"aoe-anh/aoe2/art/trade-cog.webp","cameo":"aoe-anh/aoe2/art/trade-cog.webp","page":"Trade Cog"},"aoe2:transport-ship":{"art":"aoe-anh/aoe2/art/transport-ship.webp","cameo":"aoe-anh/aoe2/art/transport-ship.webp","page":"Transport Ship (Age of Empires II)"},"aoe2:militia":{"art":"aoe-anh/aoe2/art/militia.webp","cameo":"aoe-anh/aoe2/art/militia.webp","page":"Militia (Age of Empires II)"},"aoe2:spearman":{"art":"aoe-anh/aoe2/art/spearman.webp","cameo":"aoe-anh/aoe2/art/spearman.webp","page":"Spearman (Age of Empires II)"},"aoe2:eagle-scout":{"art":"aoe-anh/aoe2/art/eagle-scout.webp","cameo":"aoe-anh/aoe2/art/eagle-scout.webp","page":"Eagle Scout (Age of Empires II)"},"aoe2:archer":{"art":"aoe-anh/aoe2/art/archer.webp","cameo":"aoe-anh/aoe2/art/archer.webp","page":"Archer (Age of Empires II)"},"aoe2:skirmisher":{"art":"aoe-anh/aoe2/art/skirmisher.webp","cameo":"aoe-anh/aoe2/art/skirmisher.webp","page":"Skirmisher (Age of Empires II)"},"aoe2:cavalry-archer":{"art":"aoe-anh/aoe2/art/cavalry-archer.webp","cameo":"aoe-anh/aoe2/art/cavalry-archer.webp","page":"Cavalry Archer (Age of Empires II)"},"aoe2:hand-cannoneer":{"art":"aoe-anh/aoe2/art/hand-cannoneer.webp","cameo":"aoe-anh/aoe2/art/hand-cannoneer.webp","page":"Hand Cannoneer"},"aoe2:scout-cavalry":{"art":"aoe-anh/aoe2/art/scout-cavalry.webp","cameo":"aoe-anh/aoe2/art/scout-cavalry.webp","page":"Scout Cavalry (Age of Empires II)"},"aoe2:knight":{"art":"aoe-anh/aoe2/art/knight.webp","cameo":"aoe-anh/aoe2/art/knight.webp","page":"Knight (Age of Empires II)"},"aoe2:camel-rider":{"cameo":"aoe-anh/aoe2/cameo/camel-rider.webp","art":"aoe-anh/aoe2/art/camel-rider.webp","page":"Camel Rider (Age of Empires II)"},"aoe2:battering-ram":{"art":"aoe-anh/aoe2/art/battering-ram.webp","cameo":"aoe-anh/aoe2/art/battering-ram.webp","page":"Battering Ram (Age of Empires II)"},"aoe2:mangonel":{"cameo":"aoe-anh/aoe2/cameo/mangonel.webp","art":"aoe-anh/aoe2/art/mangonel.webp","page":"Mangonel (Age of Empires II)"},"aoe2:scorpion":{"art":"aoe-anh/aoe2/art/scorpion.webp","cameo":"aoe-anh/aoe2/art/scorpion.webp","page":"Scorpion (Age of Empires II)"},"aoe2:bombard-cannon":{"art":"aoe-anh/aoe2/art/bombard-cannon.webp","cameo":"aoe-anh/aoe2/art/bombard-cannon.webp","page":"Bombard Cannon"},"aoe2:trebuchet":{"art":"aoe-anh/aoe2/art/trebuchet.webp","cameo":"aoe-anh/aoe2/art/trebuchet.webp","page":"Trebuchet"},"aoe2:petard":{"art":"aoe-anh/aoe2/art/petard.webp","cameo":"aoe-anh/aoe2/art/petard.webp","page":"Petard (Age of Empires II)"},"aoe2:monk":{"cameo":"aoe-anh/aoe2/cameo/monk.webp","art":"aoe-anh/aoe2/art/monk.webp","page":"Monk (Age of Empires II)"},"aoe2:galley":{"art":"aoe-anh/aoe2/art/galley.webp","cameo":"aoe-anh/aoe2/art/galley.webp","page":"Galley (Age of Empires II)"},"aoe2:fire-ship":{"art":"aoe-anh/aoe2/art/fire-ship.webp","cameo":"aoe-anh/aoe2/art/fire-ship.webp","page":"Fire Ship (Age of Empires II)"},"aoe2:demolition-ship":{"art":"aoe-anh/aoe2/art/demolition-ship.webp","cameo":"aoe-anh/aoe2/art/demolition-ship.webp","page":"Demolition Ship"},"aoe2:cannon-galleon":{"art":"aoe-anh/aoe2/art/cannon-galleon.webp","cameo":"aoe-anh/aoe2/art/cannon-galleon.webp","page":"Cannon Galleon"},"aoe2:longbowman":{"cameo":"aoe-anh/aoe2/cameo/longbowman.webp","art":"aoe-anh/aoe2/art/longbowman.webp","page":"Longbowman (Age of Empires II)"},"aoe2:cataphract":{"art":"aoe-anh/aoe2/art/cataphract.webp","cameo":"aoe-anh/aoe2/art/cataphract.webp","page":"Cataphract (Age of Empires II)"},"aoe2:woad-raider":{"cameo":"aoe-anh/aoe2/cameo/woad-raider.webp","page":"Woad Raider"},"aoe2:chu-ko-nu":{"cameo":"aoe-anh/aoe2/cameo/chu-ko-nu.webp","page":"Chu Ko Nu (Age of Empires II)"},"aoe2:throwing-axeman":{"cameo":"aoe-anh/aoe2/cameo/throwing-axeman.webp","page":"Throwing Axeman (Age of Empires II)"},"aoe2:huskarl":{"cameo":"aoe-anh/aoe2/cameo/huskarl.webp","page":"Huskarl (Age of Empires II)"},"aoe2:samurai":{"cameo":"aoe-anh/aoe2/cameo/samurai.webp","page":"Samurai (Age of Empires II)"},"aoe2:mangudai":{"cameo":"aoe-anh/aoe2/cameo/mangudai.webp","page":"Mangudai (Age of Empires II)"},"aoe2:war-elephant":{"cameo":"aoe-anh/aoe2/cameo/war-elephant.webp","page":"War Elephant (Age of Empires II)"},"aoe2:mameluke":{"cameo":"aoe-anh/aoe2/cameo/mameluke.webp","page":"Mameluke (Age of Empires II)"},"aoe2:teutonic-knight":{"cameo":"aoe-anh/aoe2/cameo/teutonic-knight.webp","page":"Teutonic Knight (Age of Empires II)"},"aoe2:janissary":{"cameo":"aoe-anh/aoe2/cameo/janissary.webp","page":"Janissary (Age of Empires II)"},"aoe2:berserk":{"cameo":"aoe-anh/aoe2/cameo/berserk.webp","page":"Berserk (Age of Empires II)"},"aoe2:longboat":{"cameo":"aoe-anh/aoe2/cameo/longboat.webp","page":"Longship (Age of Empires II)"},"aoe2:jaguar-warrior":{"cameo":"aoe-anh/aoe2/cameo/jaguar-warrior.webp","page":"Jaguar Warrior"},"aoe2:tarkan":{"cameo":"aoe-anh/aoe2/cameo/tarkan.webp","page":"Tarkan"},"aoe2:war-wagon":{"cameo":"aoe-anh/aoe2/cameo/war-wagon.webp","page":"War Wagon (Age of Empires II)"},"aoe2:turtle-ship":{"cameo":"aoe-anh/aoe2/cameo/turtle-ship.webp","page":"Turtle Ship"},"aoe2:plumed-archer":{"cameo":"aoe-anh/aoe2/cameo/plumed-archer.webp","page":"Plumed Archer"},"aoe2:conquistador":{"cameo":"aoe-anh/aoe2/cameo/conquistador.webp","page":"Conquistador (Age of Empires II)"},"aoe2:missionary":{"cameo":"aoe-anh/aoe2/cameo/missionary.webp","page":"Missionary (Age of Empires II)"}}/*IMG@*/;
+const COST = /*@COST*/{"aoe1:town-center":{"w":200},"aoe1:house":{"w":30},"aoe1:granary":{"w":120},"aoe1:storage-pit":{"w":120},"aoe1:dock":{"w":100},"aoe1:barracks":{"w":125},"aoe1:archery-range":{"w":150},"aoe1:stable":{"w":150},"aoe1:market":{"w":150},"aoe1:farm":{"w":75},"aoe1:temple":{"w":200},"aoe1:government-center":{"w":175},"aoe1:academy":{"w":150},"aoe1:siege-workshop":{"w":200},"aoe1:wonder":{"w":1000,"g":1000,"s":1000},"aoe1:wall":{"s":5},"aoe1:tower":{"s":150},"aoe1:villager":{"f":50},"aoe1:clubman":{"f":50},"aoe1:short-swordsman":{"f":35,"g":15},"aoe1:hoplite":{"f":60,"g":40},"aoe1:phalangite":{"f":60,"g":40},"aoe1:slinger":{"f":40,"s":10},"aoe1:bowman":{"f":40,"w":20},"aoe1:improved-bowman":{"f":40,"g":20},"aoe1:chariot-archer":{"f":40,"w":70},"aoe1:horse-archer":{"f":50,"g":70},"aoe1:elephant-archer":{"f":180,"g":60},"aoe1:scout":{"f":90},"aoe1:cavalry":{"f":70,"g":80},"aoe1:chariot":{"f":40,"w":60},"aoe1:war-elephant":{"f":170,"g":40},"aoe1:camel-rider":{"f":70,"g":60},"aoe1:stone-thrower":{"w":180,"g":80},"aoe1:ballista":{"w":100,"g":80},"aoe1:priest":{"g":125},"aoe1:fishing-boat":{"w":50},"aoe1:trade-boat":{"w":75,"g":60},"aoe1:light-transport":{"w":150},"aoe1:scout-ship":{"w":135},"aoe1:catapult-trireme":{"w":135,"g":50},"aoe1:fire-galley":{"w":115,"g":40},"aoe2:town-center":{"w":275,"s":100},"aoe2:house":{"w":25},"aoe2:mill":{"w":100},"aoe2:lumber-camp":{"w":100},"aoe2:mining-camp":{"w":100},"aoe2:farm":{"w":60},"aoe2:dock":{"w":150},"aoe2:barracks":{"w":175},"aoe2:archery-range":{"w":175},"aoe2:stable":{"w":175},"aoe2:blacksmith":{"w":150},"aoe2:market":{"w":175},"aoe2:monastery":{"w":175},"aoe2:university":{"w":200},"aoe2:siege-workshop":{"w":200},"aoe2:castle":{"s":650},"aoe2:wonder":{"w":1000,"g":1000,"s":1000},"aoe2:palisade-wall":{"w":3},"aoe2:stone-wall":{"s":5},"aoe2:gate":{"s":30},"aoe2:outpost":{"w":25,"s":5},"aoe2:watch-tower":{"w":35,"s":125},"aoe2:bombard-tower":{"g":100,"s":125},"aoe2:villager":{"f":50},"aoe2:fishing-ship":{"w":75},"aoe2:trade-cart":{"w":100,"g":50},"aoe2:trade-cog":{"w":100,"g":50},"aoe2:transport-ship":{"w":125},"aoe2:militia":{"f":50,"g":20},"aoe2:spearman":{"f":35,"w":25},"aoe2:eagle-scout":{"f":20,"g":50},"aoe2:archer":{"w":25,"g":45},"aoe2:skirmisher":{"f":25,"w":35},"aoe2:cavalry-archer":{"w":40,"g":60},"aoe2:hand-cannoneer":{"f":45,"g":50},"aoe2:scout-cavalry":{"f":80},"aoe2:knight":{"f":60,"g":75},"aoe2:camel-rider":{"f":55,"g":60},"aoe2:battering-ram":{"w":160,"g":75},"aoe2:mangonel":{"w":160,"g":135},"aoe2:scorpion":{"w":75,"g":75},"aoe2:bombard-cannon":{"w":225,"g":225},"aoe2:trebuchet":{"w":200,"g":200},"aoe2:petard":{"f":65,"g":20},"aoe2:monk":{"g":100},"aoe2:galley":{"w":90,"g":30},"aoe2:fire-ship":{"w":75,"g":45},"aoe2:demolition-ship":{"w":45,"g":80},"aoe2:cannon-galleon":{"w":200,"g":150},"aoe2:longbowman":{"w":35,"g":40},"aoe2:cataphract":{"f":70,"g":75},"aoe2:woad-raider":{"f":70,"g":25},"aoe2:chu-ko-nu":{"w":40,"g":35},"aoe2:throwing-axeman":{"f":55,"g":25},"aoe2:huskarl":{"f":75,"g":35},"aoe2:samurai":{"f":45,"g":30},"aoe2:mangudai":{"w":55,"g":65},"aoe2:war-elephant":{"f":170,"g":85},"aoe2:mameluke":{"f":55,"g":85},"aoe2:teutonic-knight":{"f":85,"g":30},"aoe2:janissary":{"f":60,"g":55},"aoe2:berserk":{"f":65,"g":20},"aoe2:longboat":{"w":100,"g":50},"aoe2:jaguar-warrior":{"f":60,"g":30},"aoe2:tarkan":{"f":60,"g":60},"aoe2:war-wagon":{"w":100,"g":60},"aoe2:turtle-ship":{"w":152,"g":130},"aoe2:plumed-archer":{"w":55,"g":55},"aoe2:conquistador":{"f":75,"g":60},"aoe2:missionary":{"f":30,"g":100}}/*COST@*/;
+
+DATA.forEach(d => { d.key = d.g + ":" + d.k; d.img = IMG[d.key] || {}; d.cost = COST[d.key] || {}; });
+const CIVBY = {};
+Object.entries(CIVS).forEach(([g, l]) => l.forEach(c => CIVBY[g + ":" + c.id] = c));
+
+// ---------- icon dự phòng ----------
+const ICON = {
+  build: '<path d="M8 30 L24 16 L40 30 V42 H8Z" fill="currentColor"/><rect x="20" y="32" width="8" height="10" fill="rgba(0,0,0,.45)"/>',
+  def: '<path d="M14 42 V12 H18 V16 H22 V12 H26 V16 H30 V12 H34 V42Z" fill="currentColor"/>',
+  eco: '<circle cx="24" cy="16" r="6" fill="currentColor"/><path d="M14 42 Q14 26 24 26 Q34 26 34 42Z" fill="currentColor"/>',
+  inf: '<circle cx="22" cy="12" r="5" fill="currentColor"/><path d="M16 20 H28 L26 34 H18Z M18 34 L16 44 H20 L22 36 L24 44 H28 L26 34Z" fill="currentColor"/><rect x="30" y="6" width="3" height="30" fill="currentColor"/>',
+  arch: '<path d="M14 6 Q34 24 14 42" stroke="currentColor" stroke-width="3" fill="none"/><path d="M14 6 V42" stroke="currentColor" stroke-width="1.5"/><path d="M10 24 H40 M36 20 L40 24 L36 28" stroke="currentColor" stroke-width="2.5" fill="none"/>',
+  cav: '<path d="M8 30 Q10 22 20 22 H30 L36 14 L40 16 L38 24 L34 28 L34 40 H30 L28 32 H18 L16 40 H12 L12 32Z" fill="currentColor"/>',
+  siege: '<circle cx="14" cy="38" r="5" fill="currentColor"/><circle cx="34" cy="38" r="5" fill="currentColor"/><rect x="8" y="28" width="32" height="6" fill="currentColor"/><path d="M14 28 L34 8" stroke="currentColor" stroke-width="3"/><circle cx="35" cy="8" r="4" fill="currentColor"/>',
+  monk: '<circle cx="24" cy="12" r="5" fill="currentColor"/><path d="M14 44 L18 20 H30 L34 44Z" fill="currentColor"/><path d="M38 10 V24 M34 14 H42" stroke="currentColor" stroke-width="2.5"/>',
+  naval: '<path d="M6 32 H42 L36 40 H12Z" fill="currentColor"/><path d="M24 6 V32 M24 8 L36 28 H24" stroke="currentColor" stroke-width="2.5" fill="currentColor"/>',
+  uu: '<path d="M24 4 L28 18 H42 L31 26 L35 40 L24 32 L13 40 L17 26 L6 18 H20Z" fill="currentColor"/>',
+};
+const icon = c => `<svg viewBox="0 0 48 48" aria-hidden="true">${ICON[c] || ICON.uu}</svg>`;
+
+const state = { g: "aoe1", civ: null, cat: "all", q: "", ex: true };
+try { const s = JSON.parse(localStorage.getItem("aoe-state") || "null"); if (s && GAMES[s.g]) { state.g = s.g; state.ex = s.ex !== false; } } catch (_) {}
+const save = () => { try { localStorage.setItem("aoe-state", JSON.stringify({ g: state.g, ex: state.ex })); } catch (_) {} };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[ch]));
+const civImg = (g, c, cls = "emb") => `<img class="${cls}" src="aoe-anh/${g}/civ/${c.id}.webp" alt="" loading="lazy" onerror="this.outerHTML='<span class=&quot;${cls} fb&quot;>${c.n[0]}</span>'">`;
+
+function renderTabs() {
+  $("tabs").innerHTML = Object.entries(GAMES).map(([k, G]) =>
+    `<button class="tab" role="tab" data-g="${k}" aria-selected="${state.g === k}"><span class="tn">${G.name}</span><span class="ts">${G.en} · ${G.sub}</span></button>`).join("");
+  $("tabs").querySelectorAll(".tab").forEach(b => b.onclick = () => { state.g = b.dataset.g; state.civ = null; state.cat = "all"; save(); renderAll(); });
+}
+
+function renderGuide() {
+  const G = GAMES[state.g];
+  $("eyebrow").textContent = G.eyebrow;
+  $("h1").textContent = "Bách khoa " + G.name;
+  $("gameNote").innerHTML = G.note;
+  $("ages").innerHTML = G.ages.map(a => `<div class="age"><div class="an">${a.n}</div><h3>${a.vn}</h3><div class="en">${a.en}</div><div class="req">${a.req}</div><ul>${a.unl.map(x => `<li>${x}</li>`).join("")}</ul></div>`).join("");
+  $("gguide").innerHTML = `
+    <div class="gbox play"><h3>Thứ tự xây mẫu &amp; lên đời</h3><ol>${G.build.map(x => `<li>${x}</li>`).join("")}</ol></div>
+    <div class="gbox counter"><h3>Quân nào khắc quân nào</h3><ul>${G.counter.map(x => `<li>${x}</li>`).join("")}</ul></div>
+    <div class="gbox age-k"><h3>Các lối chơi phổ biến</h3><ul>${G.tips.map(x => `<li>${x}</li>`).join("")}</ul></div>`;
+  $("exLabel").textContent = G.ex;
+}
+
+function civList() { return CIVS[state.g].filter(c => state.ex || !c.ex); }
+
+function renderCivs() {
+  const list = civList();
+  $("civHead").textContent = `Chọn nền văn minh (${list.length})`;
+  $("civs").innerHTML = list.map(c =>
+    `<button class="civ" data-c="${c.id}" aria-pressed="${state.civ === c.id}">${civImg(state.g, c)}<div><b>${c.n}</b><span>${c.focus}</span>${c.ex ? `<span class="x">${state.g === "aoe1" ? "Rise of Rome" : "The Conquerors"}</span>` : ""}</div></button>`).join("");
+  $("civs").querySelectorAll(".civ").forEach(b => b.onclick = () => {
+    state.civ = state.civ === b.dataset.c ? null : b.dataset.c; renderCivs(); renderCivPanel(); renderCats(); renderList();
+    if (state.civ) $("civPanel").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+  });
+}
+
+function renderCivPanel() {
+  const c = state.civ && CIVBY[state.g + ":" + state.civ];
+  if (!c) { $("civPanel").innerHTML = `<p class="hint">Bấm vào một nền văn minh để xem bonus, điểm mạnh, điểm yếu, cách chơi và lối lên đời. Danh sách quân bên dưới sẽ đánh dấu đơn vị mà nền văn minh đó có hoặc không có.</p>`; return; }
+  const a1 = state.g === "aoe1";
+  const missUnits = a1 ? c.miss.filter(m => DATA.some(d => d.g === "aoe1" && (d.line || [d.en]).includes(m))) : [];
+  const missTech = a1 ? c.miss.filter(m => !missUnits.includes(m)) : [];
+  $("civPanel").innerHTML = `<div class="civpanel">
+    <div class="cp-head">${civImg(state.g, c)}<div><h3>${c.n}</h3><div class="sub">${c.en} · ${c.focus}</div></div><button class="cp-close" id="cpClose">Bỏ chọn</button></div>
+    <div class="cp-grid">
+      <dl class="facts">
+        ${c.uu ? `<dt>Đơn vị riêng</dt><dd>${c.uu}</dd><dt>Công nghệ riêng</dt><dd><ul>${c.ut.map(x => `<li>${x}</li>`).join("")}</ul></dd>` : ""}
+        <dt>Bonus nền văn minh</dt><dd><ul>${c.bonus.map(x => `<li>${x}</li>`).join("")}</ul></dd>
+        <dt>Bonus đồng đội</dt><dd>${c.team}</dd>
+        ${a1 ? `<dt>Không có quân / nâng cấp</dt><dd>${missUnits.join(", ") || "Không thiếu"}</dd><dt>Không có công nghệ</dt><dd>${missTech.join(", ") || "Không thiếu"}</dd>` : ""}
+      </dl>
+      <div class="gbox good"><h3>Điểm mạnh</h3><ul>${c.good.map(x => `<li>${x}</li>`).join("")}</ul></div>
+      <div class="gbox bad"><h3>Điểm yếu</h3><ul>${c.bad.map(x => `<li>${x}</li>`).join("")}</ul></div>
+      <div class="gbox play"><h3>Cách chơi</h3><ol>${c.play.map(x => `<li>${x}</li>`).join("")}</ol></div>
+      <div class="gbox age-k"><h3>Lối lên đời</h3><ul><li>${c.age}</li></ul></div>
+    </div></div>`;
+  $("cpClose").onclick = () => { state.civ = null; renderCivs(); renderCivPanel(); renderCats(); renderList(); };
+}
+
+// AoE I: tính đơn vị dừng ở bậc nào với nền văn minh đang chọn
+function avail(d) {
+  if (state.g !== "aoe1" || !state.civ) return null;
+  const c = CIVBY["aoe1:" + state.civ];
+  const line = d.line || [d.en];
+  const i = line.findIndex(n => c.miss.includes(n));
+  if (i === -1) return { ok: true };
+  if (i === 0) return { none: true };
+  return { stop: line[i - 1], from: i };
+}
+
+function pool() {
+  return DATA.filter(d => d.g === state.g && (state.ex || !d.x) && (!d.uu || !state.civ || d.uu === state.civ) && (!d.uu || state.ex || !CIVBY[d.g + ":" + d.uu].ex));
+}
+
+function renderCats() {
+  const base = pool();
+  $("cats").innerHTML = [["all", "Tất cả"], ...CATS[state.g]].map(([k, label]) => {
+    const n = k === "all" ? base.length : base.filter(d => d.c === k).length;
+    if (k !== "all" && !n) return "";
+    return `<button class="chip" data-k="${k}" aria-pressed="${state.cat === k}">${label} <span class="n">${n}</span></button>`;
+  }).join("");
+  $("cats").querySelectorAll(".chip").forEach(b => b.onclick = () => { state.cat = b.dataset.k; renderCats(); renderList(); });
+}
+
+const RES = [["f", "food", "thức ăn"], ["w", "wood", "gỗ"], ["g", "gold", "vàng"], ["s", "stone", "đá"]];
+function costHTML(d) {
+  const parts = RES.filter(([k]) => d.cost[k]).map(([k, v, label]) => `<span title="${label}"><i style="background:var(--${v})"></i>${d.cost[k].toLocaleString("vi-VN")}</span>`);
+  return `<div class="cost">${parts.join("") || '<span class="free">Không tốn</span>'}</div>`;
+}
+
+function card(d) {
+  const av = avail(d);
+  const badges = [`<span class="b age">Đời ${d.a} · ${AGE[d.g][d.a - 1]}</span>`];
+  if (d.uu) badges.push(`<span class="b uu">Riêng ${CIVBY[d.g + ":" + d.uu].n}</span>`);
+  if (d.x) badges.push(`<span class="b ex">${d.g === "aoe1" ? "Rise of Rome" : "The Conquerors"}</span>`);
+  if (av && av.none) badges.push(`<span class="b na">Không có</span>`);
+  if (av && av.stop) badges.push(`<span class="b part">Chỉ tới ${esc(av.stop)}</span>`);
+  const line = d.line ? `<div class="line">Nâng cấp: ${d.line.map((n, i) => av && av.from !== undefined && i >= av.from ? `<s>${esc(n)}</s>` : `<b>${esc(n)}</b>`).join(" → ")}</div>` : "";
+  const src = d.img.cameo || d.img.art;
+  const pic = src
+    ? `<button class="cameo real" data-k="${d.key}" title="Xem ảnh lớn"><img src="${src}" alt="${esc(d.en)}" loading="lazy" onerror="this.parentNode.outerHTML='<div class=&quot;cameo&quot;>'+icon('${d.c}')+'</div>'"></button>`
+    : `<div class="cameo">${icon(d.c)}</div>`;
+  return `<article class="card${d.uu ? " uu" : ""}${av && av.none ? " na" : ""}">
+    <div>${pic}${costHTML(d)}</div>
+    <div class="body">
+      <div class="nm"><h3>${esc(d.en)}</h3><span class="vn">${esc(d.vn)}</span></div>
+      <div class="badges">${badges.join("")}</div>
+      ${line}
+      <p class="desc">${esc(d.d)}</p>
+      <dl class="kv">
+        <dt>Làm ở</dt><dd>${esc(d.from)}</dd>
+        ${d.s ? `<dt>Mạnh với</dt><dd class="good">${esc(d.s)}</dd>` : ""}
+        ${d.w ? `<dt>Yếu với</dt><dd class="bad">${esc(d.w)}</dd>` : ""}
+      </dl>
+      <a class="more" href="${wikiUrl(d)}" target="_blank" rel="noopener">Thông tin gốc trên wiki ↗</a>
+    </div>
+  </article>`;
+}
+
+function renderList() {
+  const q = state.q.trim().toLowerCase();
+  let items = pool();
+  if (q) items = DATA.filter(d => (state.ex || !d.x) && (d.en + " " + d.vn + " " + (d.line || []).join(" ")).toLowerCase().includes(q));
+  else if (state.cat !== "all") items = items.filter(d => d.c === state.cat);
+  const civ = state.civ && CIVBY[state.g + ":" + state.civ];
+  $("count").textContent = q ? `${items.length} kết quả cho "${state.q}" ở cả hai trò chơi`
+    : civ ? `${items.length} mục · đang xem theo ${civ.n}` : `${items.length} mục`;
+  if (!items.length) { $("out").innerHTML = `<div class="empty">Không có mục nào khớp. Thử bỏ bớt bộ lọc hoặc bật bản mở rộng.</div>`; return; }
+  const groups = [];
+  ["aoe1", "aoe2"].forEach(g => CATS[g].forEach(([k, label]) => {
+    const l = items.filter(d => d.g === g && d.c === k);
+    if (l.length) groups.push([(q ? GAMES[g].name + " · " : "") + label, l]);
+  }));
+  $("out").innerHTML = groups.map(([label, list]) => `<h3 class="section-h" style="font-size:19px">${label}</h3><div class="grid">${list.map(card).join("")}</div>`).join("");
+}
+
+function wikiUrl(d) {
+  return d.img.page ? "https://ageofempires.fandom.com/wiki/" + encodeURIComponent(d.img.page.replace(/ /g, "_"))
+    : "https://ageofempires.fandom.com/wiki/Special:Search?query=" + encodeURIComponent(d.en);
+}
+function openLightbox(key) {
+  const d = DATA.find(x => x.key === key); if (!d) return;
+  $("lbTitle").textContent = d.en;
+  $("lbSub").textContent = d.vn + " · " + GAMES[d.g].name;
+  $("lbArt").src = d.img.art || d.img.cameo;
+  $("lbArt").alt = d.en;
+  $("lbLink").href = wikiUrl(d);
+  $("lb").showModal();
+}
+$("out").addEventListener("click", e => { const b = e.target.closest(".cameo.real"); if (b) openLightbox(b.dataset.k); });
+$("lbClose").onclick = () => $("lb").close();
+$("lb").addEventListener("click", e => { if (e.target === $("lb")) $("lb").close(); });
+
+// ---------- phím tắt (theo trang Hotkey của Age of Empires Wiki) ----------
+const KEYS = {
+  aoe1: [
+    { t: "Bản gốc 1997 / Rise of Rome", note: "Chọn dân, bấm <kbd>B</kbd> mở bảng xây nhà rồi bấm phím của công trình. Giữ <kbd>Ctrl</kbd> + phím để nhảy tới công trình đó.", groups: [
+      { h: "Dân xây (B rồi phím)", k: [["E","Nhà"],["G","Kho lương"],["S","Kho chứa"],["D","Bến tàu"],["B","Trại lính"],["A","Trường bắn"],["L","Chuồng ngựa"],["M","Chợ"],["F","Ruộng"],["T","Tháp"],["W","Tường"],["C","Trung tâm chính quyền"],["P","Đền thờ"],["N","Nhà chính"],["K","Xưởng công thành"],["Y","Học viện"],["O","Kỳ quan"],["R","Sửa chữa"]] },
+      { h: "Nhảy tới công trình", k: [["H","Nhà chính"],["Ctrl+B","Trại lính"],["Ctrl+A","Trường bắn"],["Ctrl+L","Chuồng ngựa"],["Ctrl+D","Bến tàu"],["Ctrl+P","Đền thờ"],["Ctrl+Y","Học viện"]] },
+    ] },
+    { t: "Definitive Edition / Return of Rome", note: "Bản DE dùng bố cục lưới: phím tương ứng vị trí nút trên bảng lệnh (hàng trên <kbd>Q</kbd>–<kbd>T</kbd>, hàng giữa <kbd>A</kbd>–<kbd>G</kbd>, hàng dưới <kbd>Z</kbd>–<kbd>B</kbd>). Chọn dân, bấm <kbd>Q</kbd> mở nhà kinh tế hoặc <kbd>W</kbd> mở nhà quân sự rồi bấm phím. Có thể đổi bộ phím trong phần cài đặt phím tắt.", groups: [
+      { h: "Dân xây (Q hoặc W rồi phím) · nhà kinh tế / nhà quân sự", k: [["Q","Nhà / Trại lính"],["W","Kho lương / Trường bắn"],["E","Kho chứa / Chuồng ngựa"],["R","Bến tàu / Xưởng công thành"],["A","Ruộng / Học viện"],["S","Chợ / Tường"],["D","Trung tâm chính quyền / Cổng"],["F","Đền thờ / Tháp"],["Z","Nhà chính"],["X","Kỳ quan"]] },
+      { h: "Nhảy tới công trình (thêm Shift để chọn tất cả)", k: [["H","Nhà chính"],["Ctrl+I","Kho lương"],["Ctrl+Z","Kho chứa"],["Ctrl+B","Trại lính"],["Ctrl+A","Trường bắn"],["Ctrl+L","Chuồng ngựa"],["Ctrl+M","Chợ"],["Ctrl+D","Bến tàu"],["Ctrl+Y","Đền thờ"],["Ctrl+U","Trung tâm chính quyền"],["Ctrl+S","Học viện"],["Ctrl+K","Xưởng công thành"]] },
+      { h: "Dân & quân", k: [[".","Dân đang rảnh kế tiếp"],["Shift+.","Chọn mọi dân rảnh"],[",","Lính đang rảnh kế tiếp"],["Ctrl+,","Chọn mọi lính bộ rảnh (bấm lại: tàu)"],["Alt+,","Chọn mọi lính trên màn hình"],["R","Di chuyển và tấn công"],["T","Tấn công mặt đất / cho dân vào nhà"],["A","Dân đổ tài nguyên"],["F","Dân chạy trốn vào nhà"],["G","Dừng mọi việc"],["Z / V","Đội hình hàng / đội hình chia cánh"]] },
+      { h: "Khác", k: [["Home","Tới thông báo gần nhất"],["Delete","Xóa một quân đang chọn"],["Shift+Delete","Xóa mọi quân đang chọn"],["F3","Tạm dừng"],["F11","Đổi kiểu hiện giờ chơi"],["F12","Lưu game"],["Page Up / Page Down","Xem lại tin nhắn chat"]] },
+    ] },
+  ],
+  aoe2: [
+    { t: "Bản gốc AoK / Conquerors / HD", note: "Chọn dân, bấm <kbd>B</kbd> (nhà kinh tế) hoặc <kbd>V</kbd> (nhà quân sự) rồi bấm phím. Chọn công trình rồi bấm phím để ra quân. Giữ <kbd>Ctrl</kbd> + phím công trình để nhảy tới công trình đó.", groups: [
+      { h: "Dân xây (B / V rồi phím)", k: [["E","Nhà"],["I","Nhà xay"],["Z","Trại gỗ"],["G","Trại mỏ"],["F","Ruộng"],["D","Bến tàu"],["N","Nhà chính"],["M","Chợ"],["S","Lò rèn"],["U","Đại học"],["Y","Tu viện"],["B","Trại lính"],["A","Trường bắn"],["L","Chuồng ngựa"],["K","Xưởng công thành"],["V","Lâu đài"],["T","Tháp canh"],["J","Tháp pháo"],["Q","Chòi canh"],["P","Tường gỗ"],["W","Tường đá"],["/","Cổng"],["O","Kỳ quan"]] },
+      { h: "Ra quân", k: [["C","Dân (Nhà chính)"],["S / E / G","Militia, Spearman, Eagle (Trại lính)"],["A / R / C / E","Archer, Skirmisher, kỵ cung, lính súng (Trường bắn)"],["T / N / C","Scout, Knight, Camel (Chuồng ngựa)"],["R / A / N / C","Ram, Mangonel, Scorpion, Bombard (Xưởng công thành)"],["T / P / R","Đơn vị riêng, Petard, Trebuchet (Lâu đài)"],["T","Monk (Tu viện), Trade Cart (Chợ)"],["F / A / R / D / C","Tàu cá, Galley, Fire Ship, Demolition, Cannon Galleon (Bến tàu)"]] },
+      { h: "Nhảy tới công trình", k: [["H","Nhà chính"],["Ctrl+B","Trại lính"],["Ctrl+A","Trường bắn"],["Ctrl+L","Chuồng ngựa"],["Ctrl+K","Xưởng công thành"],["Ctrl+V","Lâu đài"],["Ctrl+Y","Tu viện"],["Ctrl+M","Chợ"],["Ctrl+D","Bến tàu"],["Ctrl+S","Lò rèn"],["Ctrl+U","Đại học"],["Space","Đưa màn hình về quân đang chọn"]] },
+    ] },
+    { t: "Definitive Edition", note: "Bản DE dùng bố cục lưới: phím ra quân và nghiên cứu tương ứng vị trí nút trên bảng lệnh (hàng trên <kbd>Q</kbd>–<kbd>T</kbd>, hàng giữa <kbd>A</kbd>–<kbd>G</kbd>, hàng dưới <kbd>Z</kbd>–<kbd>B</kbd>). Chọn dân, bấm <kbd>Q</kbd> (nhà kinh tế) hoặc <kbd>W</kbd> (nhà quân sự) rồi bấm phím. Có thể đổi bộ phím trong phần cài đặt phím tắt.", groups: [
+      { h: "Dân xây (Q / W rồi phím) · nhà kinh tế / nhà quân sự", k: [["Q","Nhà / Trại lính"],["W","Nhà xay / Trường bắn"],["E","Trại mỏ / Chuồng ngựa"],["R","Trại gỗ / Xưởng công thành"],["T","Bến tàu"],["C","Lâu đài"],["A","Ruộng / Chòi canh"],["S","Lò rèn / Tường gỗ"],["D","Chợ / Tường đá"],["F","Tu viện / Tháp canh"],["G","Đại học / Tháp pháo"],["Z","Nhà chính / Cổng"],["X","Kỳ quan / Cổng gỗ"]] },
+      { h: "Nhảy tới công trình (thêm Shift để chọn tất cả)", k: [["H","Nhà chính"],["Ctrl+I","Nhà xay"],["Ctrl+Z","Trại gỗ"],["Ctrl+G","Trại mỏ"],["Ctrl+B","Trại lính"],["Ctrl+A","Trường bắn"],["Ctrl+L","Chuồng ngựa"],["Ctrl+K","Xưởng công thành"],["Ctrl+V","Lâu đài"],["Ctrl+Y","Tu viện"],["Ctrl+M","Chợ"],["Ctrl+S","Lò rèn"],["Ctrl+U","Đại học"],["Ctrl+D","Bến tàu"]] },
+      { h: "Dân & quân", k: [[".","Dân đang rảnh kế tiếp"],["Shift+.","Chọn mọi dân rảnh"],[",","Lính đang rảnh kế tiếp"],["Shift+,","Chọn mọi lính rảnh (bấm lại: tàu)"],["Alt+,","Chọn lính rảnh trên màn hình"],["Alt+.","Chọn mọi xe buôn rảnh"],["R","Di chuyển và tấn công"],["T","Tấn công mặt đất / vào nhà, vào tàu"],["A","Dân đổ tài nguyên"],["F","Dân chạy trốn vào nhà"],["G","Dừng"],["Q / W","Dựng / gỡ Trebuchet"],["Z / V","Đội hình hàng / chia cánh"]] },
+      { h: "Nhóm quân & khác", k: [["Ctrl+0–9","Gán nhóm quân"],["0–9","Chọn nhóm"],["Ctrl+Shift+0–9","Chọn nhóm và đưa màn hình tới"],["Shift+0–9","Thêm quân đang chọn vào nhóm"],["U","Bỏ quân khỏi nhóm"],["Delete","Xóa một quân"],["Shift+Delete","Xóa mọi quân đang chọn"],["F5","Xem cây công nghệ"],["F11","Đổi kiểu hiện giờ chơi"],["Enter","Chat"],["Ctrl+Phím cộng / Ctrl+Phím trừ","Phóng to, thu nhỏ"]] },
+    ] },
+  ],
+};
+const kbdify = k => k.split(" / ").map(alt => alt.split("+").map(x => `<kbd>${esc(x.trim())}</kbd>`).join("+")).join(" / ");
+const keyState = { aoe1: 0, aoe2: 0 };
+function renderKeys() {
+  const sets = KEYS[state.g], i = keyState[state.g], K = sets[i];
+  $("keyTabs").innerHTML = sets.map((x, j) => `<button class="chip" data-i="${j}" aria-pressed="${i === j}">${x.t}</button>`).join("");
+  $("keyTabs").querySelectorAll(".chip").forEach(b => b.onclick = () => { keyState[state.g] = +b.dataset.i; renderKeys(); });
+  $("keyNote").innerHTML = K.note;
+  $("keys").innerHTML = K.groups.map(gr => `<div class="kbox"><h4>${gr.h}</h4><dl class="kl">${gr.k.map(([k, v]) => `<dt>${kbdify(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl></div>`).join("");
+}
+
+function renderAll() {
+  document.body.dataset.g = state.g;
+  $("exToggle").checked = state.ex;
+  renderTabs(); renderGuide(); renderCivs(); renderCivPanel(); renderCats(); renderList(); renderKeys();
+}
+$("q").addEventListener("input", e => { state.q = e.target.value; renderList(); });
+$("exToggle").addEventListener("change", e => {
+  state.ex = e.target.checked;
+  if (state.civ && !state.ex && CIVBY[state.g + ":" + state.civ].ex) state.civ = null;
+  save(); renderAll();
+});
+renderAll();
+</script>
+</body>
+</html>

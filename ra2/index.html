@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bách khoa Red Alert 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
+<style>
+/* Layout: RA2 command sidebar — faction tabs on top, country strip, filter bar, then a grid of "cameo" cards like the in-game build menu. Single dark look by choice. */
+:root {
+  color-scheme: dark;
+  --bg: #0c0f12;
+  --panel: #141a1f;
+  --panel-2: #1b232a;
+  --line: #2a343d;
+  --fg: #dde3e8;
+  --muted: #8b98a4;
+  --allied: #4a90ff;
+  --soviet: #e4392f;
+  --yuri: #a85cff;
+  --tech: #d1a530;
+  --accent: var(--allied);
+  --f-display: "Chakra Petch", "Bahnschrift", "Arial Narrow", sans-serif;
+  --f-body: "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.55;
+}
+body[data-f="soviet"] { --accent: var(--soviet); }
+body[data-f="yuri"] { --accent: var(--yuri); }
+body[data-f="tech"] { --accent: var(--tech); }
+.wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-block: 28px 60px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 22px;
+}
+header { display: grid; gap: 6px; }
+.eyebrow {
+  font-family: var(--f-display);
+  font-size: 12px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  transition: color .3s;
+}
+h1 {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(28px, 5vw, 44px);
+  line-height: 1.05;
+  margin: 0;
+  text-wrap: balance;
+  letter-spacing: .01em;
+}
+.lede { color: var(--muted); margin: 0; max-width: 68ch; }
+
+/* faction tabs */
+.tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.tab {
+  --c: var(--allied);
+  appearance: none;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  color: var(--fg);
+  padding: 12px 14px;
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  gap: 2px;
+  position: relative;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+  font-family: var(--f-body);
+}
+.tab[data-f="soviet"] { --c: var(--soviet); }
+.tab[data-f="yuri"] { --c: var(--yuri); }
+.tab[data-f="tech"] { --c: var(--tech); }
+.tab .tn { font-family: var(--f-display); font-weight: 700; font-size: 18px; letter-spacing: .03em; }
+.tab .ts { font-size: 12px; color: var(--muted); }
+.tab::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+  background: var(--c); opacity: .35; transition: opacity .2s;
+}
+.tab:hover::after { opacity: .7; }
+.tab[aria-selected="true"] { border-color: var(--c); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 22%, var(--panel-2)), var(--panel)); }
+.tab[aria-selected="true"]::after { opacity: 1; }
+.tab:focus-visible, .chip:focus-visible, input:focus-visible, .country:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* countries */
+.countries { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
+.country {
+  appearance: none; font: inherit; color: inherit; text-align: left; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--line); padding: 10px 12px;
+  display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: center;
+}
+.country[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--panel)); }
+.flag { width: 34px; height: 24px; border: 1px solid var(--line); display: block; }
+.country b { font-family: var(--f-display); font-weight: 600; font-size: 14px; display: block; letter-spacing: .02em; }
+.country span { font-size: 12px; color: var(--muted); }
+.faction-note { font-size: 14px; color: var(--muted); margin: 0; max-width: 80ch; }
+.faction-note strong { color: var(--fg); font-weight: 600; }
+
+/* filter bar */
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip {
+  appearance: none; font: inherit; font-size: 13px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--panel); color: var(--fg);
+  padding: 6px 12px; display: inline-flex; gap: 6px; align-items: center;
+}
+.chip .n { font-family: var(--f-display); color: var(--muted); font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chip[aria-pressed="true"] .n { color: rgba(255,255,255,.8); }
+.search { flex: 1 1 220px; min-width: 0; position: relative; }
+.search input {
+  width: 100%; font: inherit; font-size: 14px; color: var(--fg);
+  background: var(--panel); border: 1px solid var(--line); padding: 7px 12px;
+}
+.search input::placeholder { color: var(--muted); }
+.toggle { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); cursor: pointer; }
+.toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+/* grid */
+.count { font-family: var(--f-display); font-size: 13px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+.section-h {
+  font-family: var(--f-display); font-size: 15px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--accent); margin: 10px 0 0; display: flex; align-items: center; gap: 12px;
+}
+.section-h::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+@media (max-width: 420px) { .grid { grid-template-columns: 1fr; } .tabs { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+.card {
+  --c: var(--allied);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 14px;
+  align-content: start;
+}
+.card[data-f="soviet"] { --c: var(--soviet); }
+.card[data-f="yuri"] { --c: var(--yuri); }
+.card[data-f="tech"] { --c: var(--tech); }
+.cameo {
+  width: 92px; aspect-ratio: 4 / 3; max-width: 100%;
+  border: 1px solid color-mix(in srgb, var(--c) 55%, var(--line));
+  background:
+    repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--c) 8%, transparent) 6px 7px),
+    radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--c) 35%, var(--panel-2)), var(--bg) 85%);
+  position: relative; overflow: hidden;
+}
+.cameo svg { width: 100%; height: 100%; display: block; }
+.cameo.real { aspect-ratio: 5 / 4; background: var(--bg); cursor: zoom-in; padding: 0; appearance: none; display: block; }
+.cameo.real img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cameo.real:hover { border-color: var(--c); box-shadow: 0 0 0 1px var(--c); }
+
+/* faction guide */
+.guide { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+.gbox { background: var(--panel); border: 1px solid var(--line); padding: 14px 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.gbox h3 { margin: 0; font-family: var(--f-display); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; display: flex; gap: 8px; align-items: center; }
+.gbox h3::before { content: ""; width: 8px; height: 8px; background: var(--k, var(--accent)); }
+.gbox.good { --k: #6cc46a; } .gbox.bad { --k: #e8735f; } .gbox.play { --k: var(--accent); } .gbox.counter { --k: var(--tech); }
+.gbox ul, .gbox ol { margin: 0; padding-left: 18px; display: grid; gap: 5px; font-size: 14px; }
+.gbox ol li::marker { font-family: var(--f-display); color: var(--accent); font-weight: 700; }
+.gbox li b { font-weight: 600; }
+.country .tip { display: block; font-size: 12px; color: var(--fg); opacity: .8; margin-top: 3px; line-height: 1.4; }
+.country { align-items: start; }
+
+/* lightbox */
+#lb { border: 1px solid var(--line); background: var(--panel); color: var(--fg); padding: 0; max-width: min(720px, calc(100vw - 32px)); width: 100%; }
+#lb::backdrop { background: rgba(0,0,0,.75); }
+#lb .lbin { display: grid; gap: 12px; padding: 16px; }
+#lb .lbimg { background: var(--bg); display: grid; place-items: center; min-height: 160px; }
+#lb .lbimg img { max-height: 60vh; width: auto; max-width: 100%; }
+#lb .lbrow { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+#lb .lbrow img { width: 90px; image-rendering: auto; border: 1px solid var(--line); }
+#lb h3 { margin: 0; font-family: var(--f-display); font-size: 20px; }
+#lb .x { margin-left: auto; appearance: none; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); font: inherit; padding: 6px 12px; cursor: pointer; }
+.cost {
+  margin-top: 6px; font-family: var(--f-display); font-weight: 700; font-size: 15px;
+  color: var(--tech); font-variant-numeric: tabular-nums; text-align: center;
+}
+.cost.free { color: var(--muted); font-size: 12px; font-weight: 600; }
+.body { display: grid; gap: 6px; min-width: 0; }
+.nm { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.nm h3 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: 17px; letter-spacing: .02em; line-height: 1.2; }
+.nm .vn { font-size: 13px; color: var(--muted); }
+.badges { display: flex; flex-wrap: wrap; gap: 4px; }
+.b {
+  font-size: 11px; line-height: 1; padding: 4px 6px; border: 1px solid var(--line);
+  color: var(--muted); font-family: var(--f-display); font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+}
+.b.yr { border-color: color-mix(in srgb, var(--yuri) 60%, var(--line)); color: color-mix(in srgb, var(--yuri) 70%, var(--fg)); }
+.b.ra2 { border-color: color-mix(in srgb, var(--tech) 60%, var(--line)); color: var(--tech); }
+.b.ct { border-color: var(--c); color: var(--fg); background: color-mix(in srgb, var(--c) 20%, transparent); }
+.b.role { color: var(--fg); }
+.desc { margin: 0; font-size: 14px; }
+.kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; font-size: 13px; margin: 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; }
+.kv dd.good { color: #8fd18a; }
+.kv dd.bad { color: #f0a08f; }
+.more { font-size: 12px; color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); justify-self: start; }
+.more:hover { color: var(--accent); border-color: var(--accent); }
+.empty { padding: 40px 16px; text-align: center; color: var(--muted); border: 1px dashed var(--line); }
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; display: grid; gap: 6px; max-width: 90ch; }
+/* phím tắt */
+.keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }
+.kbox { background: var(--panel); border: 1px solid var(--line); padding: 14px 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.kbox h3 { margin: 0; font-family: var(--f-display); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.kl { display: grid; grid-template-columns: fit-content(46%) minmax(0, 1fr); gap: 5px 12px; margin: 0; font-size: 14px; align-items: baseline; }
+.kl dt { line-height: 1.9; }
+.kl dd { margin: 0; }
+kbd { white-space: nowrap; font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12px; padding: 2px 6px; border: 1px solid var(--line); border-bottom-width: 2px; background: var(--panel-2); color: var(--fg); border-radius: 3px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.home { font-size: 13px; color: var(--muted); text-decoration: none; justify-self: start; }
+.home:hover { color: var(--accent); }
+</style>
+
+<meta name="description" content="Tra cứu công trình, quân lính, siêu vũ khí, quốc gia, cách chơi và phím tắt Red Alert 2 & Yuri's Revenge.">
+<meta property="og:title" content="Bách khoa Red Alert 2">
+<meta property="og:description" content="Công trình, quân lính, quốc gia, cách chơi và phím tắt Red Alert 2 & Yuri's Revenge.">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="home" href="../">← Bách khoa game</a>
+    <div class="eyebrow" id="eyebrow">Command &amp; Conquer · Red Alert 2 &amp; Yuri's Revenge</div>
+    <h1>Bách khoa Red Alert 2</h1>
+    <p class="lede">Tra cứu toàn bộ công trình, phòng thủ, bộ binh, xe, không quân, hải quân và siêu vũ khí của ba phe Đồng Minh, Liên Xô, Yuri, kèm đơn vị riêng của từng quốc gia và các công trình kỹ thuật trung lập.</p>
+  </header>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <section id="countryWrap" style="display:grid;gap:10px">
+    <p class="faction-note" id="factionNote"></p>
+    <div class="guide" id="guide"></div>
+    <div class="section-h" id="countryHead">Chọn quốc gia</div>
+    <div class="countries" id="countries"></div>
+  </section>
+
+  <div class="bar" id="cats"></div>
+  <div class="bar">
+    <label class="search"><input id="q" type="search" placeholder="Tìm theo tên: Prism, Kirov, Tanya, Mastermind…" autocomplete="off"></label>
+    <label class="toggle"><input type="checkbox" id="yrToggle" checked> Gồm Yuri's Revenge</label>
+  </div>
+
+  <div class="count" id="count"></div>
+  <main id="out" style="display:grid;gap:14px"></main>
+
+  <section style="display:grid;gap:10px">
+    <h2 class="section-h">Phím tắt</h2>
+    <p class="faction-note">Phím mặc định của Red Alert 2 và Yuri's Revenge, theo bảng phím trong sách hướng dẫn Yuri's Revenge. Có thể đổi trong Options &gt; Keyboard.</p>
+    <div class="keys"><div class="kbox"><h3>Lệnh cho quân</h3><dl class="kl"><dt><kbd>D</kbd></dt><dd>Triển khai quân / xe (GI, MCV, Siege Chopper…)</dd><dt><kbd>G</kbd></dt><dd>Canh giữ khu vực đang đứng</dd><dt><kbd>S</kbd></dt><dd>Dừng</dd><dt><kbd>X</kbd></dt><dd>Tản ra</dd><dt><kbd>F</kbd></dt><dd>Đi theo</dd><dt><kbd>Ctrl</kbd>+<kbd>Click</kbd></dt><dd>Bắn bắt buộc vào mục tiêu</dd><dt><kbd>Alt</kbd>+<kbd>Click</kbd></dt><dd>Di chuyển bắt buộc (đè lên quân)</dd><dt>Giữ <kbd>Z</kbd></dt><dd>Đặt điểm đi (waypoint): giữ Z, bấm các điểm, thả phím để quân chạy</dd></dl></div><div class="kbox"><h3>Chọn quân & nhóm</h3><dl class="kl"><dt><kbd>T</kbd></dt><dd>Chọn tất cả quân cùng loại</dd><dt><kbd>P</kbd></dt><dd>Chọn tất cả quân</dd><dt><kbd>N</kbd> / <kbd>M</kbd></dt><dd>Quân kế tiếp / quân trước</dd><dt><kbd>Shift</kbd>+<kbd>Click</kbd></dt><dd>Thêm hoặc bớt quân khỏi nhóm đang chọn</dd><dt><kbd>Ctrl</kbd>+<kbd>1–9</kbd></dt><dd>Gán nhóm quân</dd><dt><kbd>1–9</kbd></dt><dd>Chọn nhóm</dd><dt><kbd>1–9</kbd> ×2</dt><dd>Chọn nhóm và đưa màn hình tới</dd></dl></div><div class="kbox"><h3>Thanh xây dựng & căn cứ</h3><dl class="kl"><dt><kbd>Q</kbd></dt><dd>Tab công trình</dd><dt><kbd>W</kbd></dt><dd>Tab phòng thủ</dd><dt><kbd>E</kbd></dt><dd>Tab bộ binh</dd><dt><kbd>R</kbd></dt><dd>Tab xe</dd><dt><kbd>K</kbd></dt><dd>Chế độ sửa nhà</dd><dt><kbd>L</kbd></dt><dd>Chế độ bán nhà</dd><dt><kbd>H</kbd></dt><dd>Đưa màn hình về căn cứ</dd><dt><kbd>Space</kbd></dt><dd>Tới sự kiện mới nhất trên radar</dd></dl></div><div class="kbox"><h3>Màn hình, chat & khác</h3><dl class="kl"><dt><kbd>Ctrl</kbd>+<kbd>F1–F4</kbd></dt><dd>Lưu vị trí màn hình</dd><dt><kbd>F1–F4</kbd></dt><dd>Nhảy tới vị trí đã lưu</dd><dt><kbd>B</kbd></dt><dd>Đặt cờ hiệu (beacon), Delete để xóa</dd><dt><kbd>A</kbd></dt><dd>Liên minh với người chơi đã chọn</dd><dt><kbd>Enter</kbd></dt><dd>Chat với mọi người</dd><dt><kbd>Backspace</kbd></dt><dd>Chat với đồng minh</dd><dt><kbd>F5–F8</kbd></dt><dd>Gửi câu khiêu khích (chơi mạng)</dd><dt><kbd>Esc</kbd></dt><dd>Menu tùy chọn</dd></dl></div></div>
+  </section>
+
+  <footer>
+    <div>Giá tiền và điều kiện xây theo bản gốc Red Alert 2 (1.006) và Yuri's Revenge (1.001), chơi mặc định. Bản mod hoặc bản vá cộng đồng có thể khác đôi chút.</div>
+    <div>Ảnh cameo và ảnh lớn lấy từ C&amp;C Wiki (cnc.fandom.com), bản quyền thuộc Westwood / EA, lưu trong thư mục ra2-anh để xem offline. Bấm vào ảnh để phóng to. Mục nào thiếu ảnh sẽ hiện biểu tượng minh họa.</div>
+  </footer>
+</div>
+
+<dialog id="lb"><div class="lbin">
+  <div class="lbrow"><img id="lbCam" alt=""><div><h3 id="lbTitle"></h3><div id="lbSub" style="color:var(--muted);font-size:13px"></div></div><button class="x" id="lbClose">Đóng</button></div>
+  <div class="lbimg"><img id="lbArt" alt=""></div>
+  <a class="more" id="lbLink" target="_blank" rel="noopener">Mở trang trên C&amp;C Wiki ↗</a>
+</div></dialog>
+
+<script>
+const FACTIONS = {
+  allied: { name: "Đồng Minh", en: "Allies", sub: "5 quốc gia",
+    note: "<strong>Đồng Minh</strong> mạnh về công nghệ: tia Prism, xe tàng hình Mirage, dịch chuyển Chrono và không quân. Đơn vị đắt hơn và mỏng hơn Liên Xô, bù lại cơ động và tầm bắn tốt.",
+    guide: {
+      good: ["<b>IFV</b> đổi vũ khí theo lính ngồi trong, một xe làm được nhiều việc", "<b>Prism Tank / Prism Tower</b> phá nhà và quét bộ binh rất mạnh", "<b>Mirage Tank</b> phục kích, <b>Spy</b> và <b>Gap Generator</b> cho lối chơi lừa địch", "Hải quân mạnh nhất game: Aegis, Aircraft Carrier, Dolphin", "Chrono Miner khai thác nhanh, Chronosphere đưa đội tăng vào thẳng căn cứ địch"],
+      bad: ["Xe giáp mỏng, Grizzly thua Rhino khi đánh tay đôi", "Prism Tank rất mỏng, bị áp sát là tan", "Nhà máy điện 800 nhưng chỉ cấp 200 điện, Prism Tower ngốn điện", "Đơn vị đắt, cần điều khiển khéo mới phát huy"],
+      play: ["<b>Đầu trận:</b> Power Plant, Refinery, Barracks, thêm Refinery hoặc War Factory. Dùng GI và chó giữ nhà, ra IFV hoặc Grizzly quấy xe khai thác", "<b>Giữa trận:</b> chủ lực Grizzly, IFV (một ít IFV có Engineer bên trong để sửa xe), thêm Prism Tank đứng sau để phá phòng thủ", "Luôn giữ vài IFV hoặc Patriot phòng Kirov và Siege Chopper", "<b>Cuối trận:</b> Chronosphere đưa Prism hoặc Grizzly vào sân xây dựng địch, Weather Storm dọn cụm công trình"],
+      counter: ["Áp sát bằng xe tăng dày giáp (Rhino, Apocalypse), không cho Prism đứng xa bắn", "Terror Drone ăn IFV và Prism Tank rất nhanh", "Psychic Sensor và chó để lật Mirage Tank và Spy"],
+    },
+    countries: [
+      { id: "usa", n: "Mỹ", u: "Lính dù (Paratroopers)", t: "Lính dù miễn phí để chiếm tech và quấy rối. Dễ chơi nhất cho người mới.", fl: ["#b22234","#fff","#3c3b6e"] },
+      { id: "korea", n: "Hàn Quốc", u: "Black Eagle", t: "Máy bay bền, bom mạnh, chuyên phá phòng thủ và đội tăng.", fl: ["#fff","#cd2e3a","#0047a0"] },
+      { id: "france", n: "Pháp", u: "Grand Cannon", t: "Phòng thủ cực chắc, có thể xây Grand Cannon lấn dần sang địch.", fl: ["#0055a4","#fff","#ef4135"] },
+      { id: "germany", n: "Đức", u: "Tank Destroyer", t: "Khắc chế Liên Xô chơi tăng rush. Lựa chọn số một khi đấu tay đôi.", fl: ["#000","#dd0000","#ffce00"] },
+      { id: "uk", n: "Anh", u: "Sniper", t: "Dọn bộ binh từ xa. Cho Sniper vào IFV hoặc Battle Fortress rất mạnh.", fl: ["#012169","#fff","#c8102e"] },
+    ] },
+  soviet: { name: "Liên Xô", en: "Soviets", sub: "4 quốc gia",
+    note: "<strong>Liên Xô</strong> dựa vào thiết giáp dày và hỏa lực thô: Rhino, Apocalypse, Tesla, khí cầu Kirov. Rẻ, bền, nhưng chậm và yếu về phòng không ở đầu trận.",
+    guide: {
+      good: ["<b>Rhino Tank</b> rẻ, giáp dày, thắng mọi tăng cùng tầm giá", "<b>Apocalypse</b> gần như vô đối khi đánh trực diện, tự hồi máu", "<b>Tesla Coil</b> cùng Tesla Trooper sạc điện cho phòng thủ rất cứng", "<b>Terror Drone</b> giết xe đắt tiền, <b>V3</b> phá phòng thủ từ xa", "<b>Kirov</b> xóa căn cứ, <b>Iron Curtain</b> cho đội tăng bất tử khi xông vào"],
+      bad: ["Chậm, nhất là Apocalypse và Kirov", "Phòng không yếu, chỉ có Flak Track, Flak Trooper, Flak Cannon", "Lò Tesla cấp ít điện, Nuclear Reactor nổ thì hại chính mình", "Không có xe linh hoạt như IFV, thiếu tàng hình và dịch chuyển"],
+      play: ["<b>Đầu trận:</b> Tesla Reactor, Refinery, Barracks, War Factory. Ra Rhino sớm, cùng vài Terror Drone đi săn xe khai thác", "Dùng Flak Track chở Engineer chạy đi chiếm giếng dầu và tech", "<b>Giữa trận:</b> đánh bằng số lượng Rhino, kèm Flak Track phòng không và V3 phá phòng thủ", "<b>Cuối trận:</b> Industrial Plant giảm giá xe, ra Apocalypse hoặc Kirov, dùng Iron Curtain bật bất tử khi lao vào căn cứ"],
+      counter: ["Tank Destroyer, Prism Tank đánh từ xa trước khi Rhino áp sát", "Không quân như Harrier, Black Eagle tập kích khi Liên Xô thiếu Flak", "IFV và Aegis bắn hạ Kirov trước khi tới căn cứ"],
+    },
+    countries: [
+      { id: "russia", n: "Nga", u: "Tesla Tank", t: "Xe nhanh, bắn điện, mạnh cả với bộ binh lẫn xe. Cân bằng, dễ chơi.", fl: ["#fff","#0039a6","#d52b1e"] },
+      { id: "cuba", n: "Cuba", u: "Terrorist", t: "Lính cảm tử 200 đồng, rush sớm hoặc cho vào xe đổ bộ để đánh úp.", fl: ["#002a8f","#fff","#cf142b"] },
+      { id: "libya", n: "Libya", u: "Demolition Truck", t: "Xe bom hạt nhân phá cụm nhà. Đi kèm Iron Curtain hoặc Chronosphere cướp được sẽ rất khó chặn.", fl: ["#e70013","#000","#239e46"] },
+      { id: "iraq", n: "Iraq", u: "Desolator", t: "Bộ binh phóng xạ khóa chặt đường đi, xóa sổ bộ binh và GI đã triển khai.", fl: ["#ce1126","#fff","#000"] },
+    ] },
+  yuri: { name: "Yuri", en: "Yuri", sub: "Chỉ có trong Yuri's Revenge",
+    note: "<strong>Yuri</strong> là phe thứ ba của bản mở rộng Yuri's Revenge, không chia quốc gia. Sở trường là điều khiển tâm trí, vũ khí sinh học và tái chế đơn vị lấy tiền. Không có tàu nổi và không quân thông thường.",
+    guide: {
+      good: ["<b>Điều khiển tâm trí</b> (Yuri Clone, Mastermind, Psychic Tower) biến quân địch thành quân mình", "<b>Grinder</b> nghiền đơn vị cướp được để đổi lấy tiền", "<b>Slave Miner</b> đặt ngay cạnh mỏ, khai thác rất nhanh", "<b>Gattling Tank / Cannon</b> bắn cả bộ binh lẫn máy bay, <b>Magnetron</b> tầm xa nhấc tăng địch", "<b>Floating Disc</b> hút điện tắt phòng thủ, Psychic Dominator đổi phe cả đội quân"],
+      bad: ["Gần như không có không quân, hải quân chỉ có Boomer", "Robot Tank, Terror Drone và các đơn vị máy không bị điều khiển tâm trí", "Xe giáp mỏng, Lasher và Initiate yếu khi đánh trực diện", "Slave Miner và nô lệ đứng ở mỏ, dễ bị quấy rối", "Mastermind cướp quá giới hạn sẽ tự mất máu"],
+      play: ["<b>Đầu trận:</b> Bio Reactor, Barracks, Slave Miner đặt sát mỏ, Factory. Ra Gattling Tank làm chủ lực vì nó vừa diệt bộ binh vừa phòng không", "Đặt Psychic Tower và Gattling Cannon ở cửa ngõ để cướp xe địch lao vào", "<b>Giữa trận:</b> Lasher hoặc Gattling Tank đi cùng Yuri Clone và Magnetron, cướp tăng chủ lực của địch rồi đưa về Grinder", "<b>Cuối trận:</b> Mastermind cướp cả đội, Floating Disc tắt phòng thủ, Psychic Dominator và Genetic Mutator chốt hạ"],
+      counter: ["Đồng Minh dùng Robot Tank vì nó miễn nhiễm điều khiển tâm trí", "Chó, Sniper, Desolator dọn Yuri Clone và Initiate từ xa", "Không quân và Kirov đánh vào vì Yuri thiếu phòng không tầm xa", "Phá Slave Miner sớm để cắt kinh tế"],
+    },
+    countries: [] },
+  tech: { name: "Công trình Tech", en: "Neutral", sub: "Chiếm bằng Kỹ sư",
+    note: "<strong>Công trình kỹ thuật</strong> nằm sẵn trên bản đồ. Phe nào dùng Kỹ sư chiếm được thì nhận lợi ích. Chúng thường quyết định thế trận ở bản đồ lớn.",
+    guide: {
+      good: ["Giếng dầu cho tiền đều mà không cần xe khai thác", "Bệnh viện và Xưởng cơ khí giúp quân tự hồi máu trên toàn bản đồ", "Sân bay cho lính dù miễn phí với mọi phe", "Nhà dân thành pháo đài khi cho bộ binh vào"],
+      bad: ["Chỉ cần một Kỹ sư địch là mất", "Tech thường nằm giữa bản đồ, khó giữ", "Bị phá thì mất luôn, không xây lại được"],
+      play: ["Chở Kỹ sư bằng IFV, Flak Track hoặc Night Hawk để chiếm giếng dầu sớm", "Đặt vài GI hoặc chó cạnh tech để chặn Kỹ sư địch", "Ưu tiên chiếm giếng dầu, sau đó tới Sân bay, Bệnh viện và Xưởng cơ khí"],
+      counter: ["Dùng chó hoặc lính để giết Kỹ sư địch trước khi nó vào tới công trình", "Desolator, Virus và Prism dọn bộ binh đóng trong nhà dân"],
+    },
+    countries: [] },
+};
+
+const CATS = [
+  ["build", "Công trình"], ["def", "Phòng thủ"], ["inf", "Bộ binh"],
+  ["veh", "Xe"], ["air", "Không quân"], ["naval", "Hải quân"], ["sw", "Siêu vũ khí"],
+];
+const ROLE = { ai: "Diệt bộ binh", at: "Diệt xe", aa: "Phòng không", bd: "Phá nhà", sup: "Hỗ trợ", eco: "Kinh tế", scout: "Trinh sát", mc: "Điều khiển tâm trí" };
+
+// f: faction, c: category, ic: icon override, yr: YR only, ra2: RA2 only, ct: country
+const DATA = [
+  // ---------------- ĐỒNG MINH ----------------
+  { f:"allied", c:"build", en:"Construction Yard", vn:"Sân xây dựng", cost:3000, req:"Triển khai từ MCV", r:["eco"], d:"Trái tim của căn cứ, cho phép xây mọi công trình khác. Mất nó là không xây thêm được gì.", s:"Không thể thiếu", w:"Mục tiêu số một của Spy, Engineer, Tanya và siêu vũ khí" },
+  { f:"allied", c:"build", en:"Power Plant", vn:"Nhà máy điện", cost:800, req:"Sân xây dựng", r:["eco"], d:"Cấp 200 điện. Thiếu điện thì radar tắt, Prism Tower ngừng bắn và sản xuất chậm lại.", s:"Ổn định, bền hơn lò Tesla", w:"Spy lọt vào sẽ cắt điện toàn căn cứ một lúc" },
+  { f:"allied", c:"build", en:"Ore Refinery", vn:"Nhà máy lọc quặng", cost:2000, req:"Nhà máy điện", r:["eco"], d:"Nơi xe khai thác đổ quặng để đổi thành tiền. Đi kèm 1 Chrono Miner miễn phí.", s:"Nguồn thu chính", w:"Spy lọt vào sẽ lấy cắp một nửa số tiền" },
+  { f:"allied", c:"build", en:"Barracks", vn:"Trại lính", cost:500, req:"Nhà máy điện", r:[], d:"Huấn luyện bộ binh. Xây nhiều trại lính giúp đào tạo nhanh hơn.", s:"Rẻ, mở khóa phòng thủ cơ bản", w:"" },
+  { f:"allied", c:"build", en:"War Factory", vn:"Nhà máy chiến xa", cost:2000, req:"Nhà máy lọc quặng, Trại lính", r:[], d:"Sản xuất xe tăng, xe khai thác, MCV và máy bay vận tải.", s:"Xây thêm để sản xuất xe nhanh hơn", w:"Spy lọt vào giúp đối phương có xe cựu binh" },
+  { f:"allied", c:"build", en:"Naval Shipyard", vn:"Xưởng đóng tàu", cost:1000, req:"Nhà máy lọc quặng", r:[], d:"Phải đặt trên mặt nước. Đóng tàu chiến và sửa chữa tàu đậu cạnh xưởng.", s:"Tự sửa tàu", w:"Chỉ có ở bản đồ có biển" },
+  { f:"allied", c:"build", en:"Air Force Command HQ", vn:"Bộ chỉ huy Không quân", cost:1000, req:"Nhà máy lọc quặng", r:["scout"], d:"Bật radar mini-map, có 4 bãi đỗ cho Harrier. Quân Mỹ được thả lính dù miễn phí từ đây.", s:"Radar + sân bay trong một công trình", w:"Mỗi bãi chỉ chứa 1 máy bay" },
+  { f:"allied", c:"build", en:"Service Depot", vn:"Trạm sửa chữa", cost:800, req:"Nhà máy chiến xa", r:["sup"], d:"Xe đỗ lên sẽ được sửa với phí nhỏ. Mở khóa IFV.", s:"Kéo dài sức sống của đội tăng", w:"" },
+  { f:"allied", c:"build", en:"Battle Lab", vn:"Phòng thí nghiệm", cost:2000, req:"Nhà máy chiến xa, Bộ chỉ huy KQ", r:[], d:"Mở khóa công nghệ cao: Prism Tank, Tanya, Chrono Legionnaire, siêu vũ khí.", s:"Cửa ngõ của mọi đơn vị cao cấp", w:"Spy lọt vào giúp đối phương có đơn vị bí mật" },
+  { f:"allied", c:"build", en:"Ore Purifier", vn:"Máy tinh lọc quặng", cost:2500, req:"Phòng thí nghiệm", r:["eco"], d:"Tăng 25% tiền nhận được từ mỗi chuyến quặng.", s:"Hoàn vốn nhanh khi có nhiều xe khai thác", w:"Đắt, chỉ đáng xây ở trận dài" },
+  { f:"allied", c:"build", en:"Spy Satellite Uplink", vn:"Trạm vệ tinh do thám", cost:1500, req:"Phòng thí nghiệm", r:["scout"], d:"Xóa toàn bộ vùng tối trên bản đồ, thấy hết căn cứ địch.", s:"Thông tin toàn bản đồ", w:"Spy lọt vào sẽ khiến bản đồ bị phủ tối lại" },
+  { f:"allied", c:"build", en:"Gap Generator", vn:"Máy tạo vùng tối", cost:1000, req:"Bộ chỉ huy KQ", r:["sup"], d:"Phủ một vùng tối quanh căn cứ để che mắt địch, kể cả với vệ tinh.", s:"Giấu căn cứ và đội quân", w:"Ngốn điện, hết điện là mất tác dụng" },
+  { f:"allied", c:"build", en:"Robot Control Center", vn:"Trung tâm điều khiển Robot", cost:600, req:"Nhà máy chiến xa", yr:true, r:[], d:"Cần thiết để điều khiển Robot Tank. Bị phá hoặc mất điện thì mọi Robot Tank đứng im.", s:"Rẻ", w:"Điểm yếu chí mạng của đội Robot Tank" },
+
+  { f:"allied", c:"def", en:"Fortress Wall", vn:"Tường thành", cost:100, req:"Sân xây dựng", r:[], d:"Chặn đường bộ binh và xe, bảo vệ công trình khỏi bị bắn thẳng.", s:"Rẻ, xây nối dài", w:"Xe tăng nặng có thể bắn sập" },
+  { f:"allied", c:"def", en:"Pillbox", vn:"Lô cốt súng máy", cost:500, req:"Trại lính", r:["ai"], d:"Ụ súng máy bê tông bắn nhanh, quét sạch bộ binh tiếp cận.", s:"Bộ binh, chó", w:"Xe tăng, pháo tầm xa" },
+  { f:"allied", c:"def", en:"Patriot Missile System", vn:"Tên lửa Patriot", cost:1000, req:"Trại lính", ic:"aa", r:["aa"], d:"Bệ phóng tên lửa phòng không tầm xa.", s:"Kirov, máy bay, trực thăng, Rocketeer", w:"Không bắn được mục tiêu mặt đất" },
+  { f:"allied", c:"def", en:"Prism Tower", vn:"Tháp Prism", cost:1500, req:"Bộ chỉ huy KQ", ic:"tower", r:["at","ai"], d:"Bắn tia sáng mạnh. Nhiều tháp đứng gần nhau sẽ truyền năng lượng cho nhau, tạo một tia cực mạnh.", s:"Mọi mục tiêu mặt đất, nhất là khi đặt theo cụm", w:"Cần điện, không bắn máy bay" },
+  { f:"allied", c:"def", en:"Grand Cannon", vn:"Đại pháo Grand Cannon", cost:2000, req:"Bộ chỉ huy KQ", ct:"france", r:["at","bd"], d:"Pháo đài khổng lồ tầm bắn rất xa, chỉ quân Pháp có. Hay được dùng để \"bò\" căn cứ tới gần địch.", s:"Xe tăng, công trình, tầm bắn vượt hầu hết đơn vị", w:"Không bắn được máy bay, chậm" },
+
+  { f:"allied", c:"inf", en:"GI", vn:"Lính bộ binh GI", cost:200, req:"Trại lính", r:["ai"], d:"Lính cơ bản. Triển khai sẽ dựng bao cát và đổi sang súng máy hạng nặng mạnh hơn.", s:"Bộ binh, nhất là khi đã triển khai", w:"Xe tăng, bị nghiền dưới xích" },
+  { f:"allied", c:"inf", en:"Guardian GI", vn:"Lính hộ vệ GI", cost:400, req:"Trại lính", yr:true, r:["at","aa"], d:"Triển khai sẽ dựng bệ tên lửa chống tăng và phòng không. Khi đã triển khai thì không bị xe cán.", s:"Xe tăng, máy bay khi đã triển khai", w:"Bộ binh, chó" },
+  { f:"allied", c:"inf", en:"Engineer", vn:"Kỹ sư", cost:500, req:"Trại lính", r:["sup"], d:"Chiếm công trình địch, sửa công trình của mình, sửa cầu, tháo bom của Crazy Ivan.", s:"Chiếm Sân xây dựng địch để lấy tech", w:"Không có vũ khí" },
+  { f:"allied", c:"inf", en:"Attack Dog", vn:"Chó tấn công", cost:200, req:"Trại lính", ic:"dog", r:["ai","scout"], d:"Chạy rất nhanh, cắn chết bộ binh chỉ một phát. Phát hiện được Spy.", s:"Bộ binh, Spy, Engineer", w:"Xe, công trình phòng thủ" },
+  { f:"allied", c:"inf", en:"Rocketeer", vn:"Lính bay Rocketeer", cost:600, req:"Bộ chỉ huy KQ", ic:"rocketeer", r:["ai"], d:"Lính đeo động cơ phản lực, bay lượn và bắn súng máy từ trên cao.", s:"Bộ binh, Terror Drone, xe khai thác", w:"Phòng không, Flak Trooper" },
+  { f:"allied", c:"inf", en:"Spy", vn:"Gián điệp", cost:1000, req:"Phòng thí nghiệm", ic:"spy", r:["sup","scout"], d:"Cải trang thành lính địch. Lọt vào công trình địch: cắt điện, lấy tiền, làm mù radar, nhận đơn vị cựu binh hoặc đơn vị bí mật.", s:"Lừa phòng thủ và bộ binh địch", w:"Chó tấn công nhận ra ngay" },
+  { f:"allied", c:"inf", en:"Navy SEAL", vn:"Lính đặc nhiệm SEAL", cost:1000, req:"Xưởng đóng tàu, Phòng thí nghiệm", ic:"seal", r:["ai","bd"], d:"Bơi được, cài C4 phá công trình và tàu chiến, súng tiểu liên diệt bộ binh.", s:"Công trình, tàu, bộ binh", w:"Xe, chó, phòng thủ" },
+  { f:"allied", c:"inf", en:"Tanya", vn:"Tanya", cost:1000, req:"Phòng thí nghiệm", ic:"hero", r:["ai","bd"], d:"Anh hùng, chỉ được có 1 người. Bắn hạ bộ binh trong một phát, cài C4 phá sập công trình và tàu, bơi được.", s:"Bộ binh, công trình, tàu", w:"Xe tăng cán, chó, Terror Drone" },
+  { f:"allied", c:"inf", en:"Chrono Legionnaire", vn:"Lính Chrono", cost:1500, req:"Phòng thí nghiệm", ic:"chrono", r:["at","bd"], d:"Dịch chuyển tức thời tới bất kỳ đâu. Tia Chrono xóa mục tiêu khỏi dòng thời gian, mục tiêu càng to thì càng lâu.", s:"Mọi mục tiêu mặt đất, nhất là khi đi theo nhóm", w:"Sau khi dịch chuyển phải chờ hồi, bị bắn dễ chết" },
+  { f:"allied", c:"inf", en:"Sniper", vn:"Lính bắn tỉa", cost:600, req:"Trại lính", ct:"uk", ic:"sniper", r:["ai"], d:"Tầm bắn rất xa, một phát hạ một lính. Chỉ quân Anh có. Cho vào IFV hoặc Battle Fortress cũng rất mạnh.", s:"Bộ binh từ xa, kể cả trong lô cốt", w:"Xe, chó, phòng thủ" },
+  { f:"allied", c:"inf", en:"Paratroopers", vn:"Lính dù", cost:0, req:"Bộ chỉ huy KQ", ct:"usa", ic:"para", r:["ai"], d:"Năng lực đặc biệt của Mỹ: định kỳ gọi máy bay thả miễn phí một tốp GI xuống bất kỳ đâu trên bản đồ.", s:"Quấy rối, chiếm nhà, đánh úp", w:"Máy bay thả lính có thể bị bắn rơi" },
+
+  { f:"allied", c:"veh", en:"MCV", vn:"Xe xây dựng cơ động", cost:3000, req:"Nhà máy chiến xa, Trạm sửa chữa", ic:"mcv", r:["eco"], d:"Triển khai thành Sân xây dựng mới để mở rộng căn cứ.", s:"Mở căn cứ thứ hai", w:"Không có vũ khí, đắt" },
+  { f:"allied", c:"veh", en:"Chrono Miner", vn:"Xe khai thác Chrono", cost:1400, req:"Nhà máy lọc quặng", ic:"miner", r:["eco"], d:"Đào quặng, rồi tự dịch chuyển tức thời về nhà máy lọc, không cần chạy đường về.", s:"Nhanh, ít bị chặn đường về", w:"Lúc ra mỏ vẫn phải chạy, không có vũ khí" },
+  { f:"allied", c:"veh", en:"Grizzly Battle Tank", vn:"Xe tăng Grizzly", cost:700, req:"Nhà máy chiến xa", r:["at"], d:"Xe tăng chủ lực của Đồng Minh, nhanh và rẻ hơn Rhino nhưng giáp mỏng hơn.", s:"Xe tăng, cơ động", w:"Rhino đánh tay đôi, phòng không" },
+  { f:"allied", c:"veh", en:"Infantry Fighting Vehicle", vn:"Xe chiến đấu bộ binh IFV", cost:600, req:"Nhà máy chiến xa, Trạm sửa chữa", ic:"ifv", r:["aa","at","sup"], d:"Mặc định bắn tên lửa phòng không. Cho 1 lính vào thì vũ khí đổi theo: GI thành súng máy, Engineer thành súng sửa xe, Tesla Trooper thành tia điện, Sniper thành súng tỉa…", s:"Linh hoạt nhất game, khắc chế Kirov", w:"Giáp mỏng" },
+  { f:"allied", c:"veh", en:"Mirage Tank", vn:"Xe tăng Mirage", cost:1000, req:"Phòng thí nghiệm", ic:"mirage", r:["ai","at"], d:"Khi đứng yên sẽ ngụy trang thành cái cây. Pháo mạnh, đặc biệt đáng sợ với bộ binh.", s:"Phục kích, bộ binh, xe", w:"Psychic Sensor, Chó, máy bay" },
+  { f:"allied", c:"veh", en:"Prism Tank", vn:"Xe tăng Prism", cost:1200, req:"Phòng thí nghiệm", ic:"prism", r:["ai","bd"], d:"Bắn tia sáng tầm xa, tia khúc xạ trúng nhiều mục tiêu cùng lúc.", s:"Công trình, bộ binh, đội quân đứng dày", w:"Giáp rất mỏng, xe tăng đánh gần" },
+  { f:"allied", c:"veh", en:"Tank Destroyer", vn:"Xe diệt tăng", cost:900, req:"Nhà máy chiến xa", ct:"germany", ic:"td", r:["at"], d:"Chỉ quân Đức có. Pháo chuyên diệt xe gây sát thương cực lớn lên thiết giáp.", s:"Mọi loại xe tăng, kể cả Apocalypse", w:"Gần như vô dụng trước bộ binh" },
+  { f:"allied", c:"veh", en:"Robot Tank", vn:"Xe tăng Robot", cost:600, req:"Trung tâm điều khiển Robot", yr:true, ic:"robot", r:["at"], d:"Xe không người lái, miễn nhiễm điều khiển tâm trí, lướt qua được mặt nước.", s:"Phe Yuri, đi đường thủy", w:"Mất điện hoặc mất Trung tâm điều khiển là đứng yên" },
+  { f:"allied", c:"veh", en:"Battle Fortress", vn:"Pháo đài di động", cost:2000, req:"Phòng thí nghiệm", yr:true, ic:"fortress", r:["ai","at","sup"], d:"Xe khổng lồ chở 5 lính, lính bắn ra từ trong xe. Cán nát được cả xe tăng khác.", s:"Chở Guardian GI hoặc Sniper là cực mạnh", w:"Chậm, đắt, Magnetron" },
+  { f:"allied", c:"veh", en:"Amphibious Transport", vn:"Xe đổ bộ", cost:900, req:"Xưởng đóng tàu", ic:"hover", r:["sup"], d:"Chở bộ binh và xe vượt biển lên bờ.", s:"Đổ bộ đánh úp", w:"Không có vũ khí" },
+
+  { f:"allied", c:"air", en:"Harrier", vn:"Phản lực Harrier", cost:1200, req:"Bộ chỉ huy KQ", ic:"jet", r:["at","bd"], d:"Máy bay ném bom lao vào mục tiêu rồi quay về Bộ chỉ huy để nạp đạn.", s:"Xe tăng, công trình", w:"Phòng không, Flak Track" },
+  { f:"allied", c:"air", en:"Black Eagle", vn:"Phản lực Black Eagle", cost:1200, req:"Bộ chỉ huy KQ", ct:"korea", ic:"jet", r:["at","bd"], d:"Phiên bản Harrier riêng của Hàn Quốc: bền hơn, bom mạnh hơn.", s:"Phá phòng thủ, đánh xe", w:"Phòng không dày đặc" },
+  { f:"allied", c:"air", en:"Night Hawk Transport", vn:"Trực thăng Night Hawk", cost:1000, req:"Bộ chỉ huy KQ", ic:"heli", r:["sup"], d:"Trực thăng vận tải tàng hình với radar, chở bộ binh và có súng máy tự vệ.", s:"Thả Spy, Engineer, Tanya vào sâu trong căn cứ", w:"Giáp mỏng" },
+
+  { f:"allied", c:"naval", en:"Destroyer", vn:"Khu trục hạm", cost:1000, req:"Xưởng đóng tàu", ic:"ship", r:["at"], d:"Tàu chiến đa năng, phóng máy bay Osprey săn tàu ngầm.", s:"Tàu ngầm, tàu nổi", w:"Máy bay, mực khổng lồ" },
+  { f:"allied", c:"naval", en:"Aegis Cruiser", vn:"Tuần dương hạm Aegis", cost:1200, req:"Xưởng đóng tàu", ic:"ship", r:["aa"], d:"Tàu phòng không mạnh nhất game, bắn hạ máy bay và Kirov rất nhanh.", s:"Mọi mục tiêu trên không", w:"Không đánh được tàu hay mặt đất" },
+  { f:"allied", c:"naval", en:"Dolphin", vn:"Cá heo", cost:500, req:"Xưởng đóng tàu, Phòng thí nghiệm", ic:"dolphin", r:["at"], d:"Cá heo huấn luyện, bắn sóng âm. Có thể giải cứu tàu đang bị mực khổng lồ quấn.", s:"Tàu ngầm, Giant Squid", w:"Giáp mỏng" },
+  { f:"allied", c:"naval", en:"Aircraft Carrier", vn:"Tàu sân bay", cost:2000, req:"Xưởng đóng tàu, Phòng thí nghiệm", ic:"carrier", r:["bd","at"], d:"Phóng đàn máy bay Hornet tấn công mục tiêu ở xa, cả trên bờ.", s:"Phá căn cứ ven biển từ xa", w:"Phòng không bắn rơi Hornet, tàu ngầm" },
+
+  { f:"allied", c:"sw", en:"Chronosphere", vn:"Cỗ máy dịch chuyển Chronosphere", cost:2500, req:"Phòng thí nghiệm", ic:"chronosw", r:["sup"], d:"Dịch chuyển tức thời một nhóm xe tới bất kỳ đâu. Hồi chiêu khoảng 7 phút. Bộ binh bị dịch chuyển sẽ chết, xe dịch chuyển xuống nước sẽ chìm.", s:"Đưa tăng thẳng vào căn cứ địch, dìm xe địch xuống biển", w:"Không dùng được cho bộ binh" },
+  { f:"allied", c:"sw", en:"Weather Control Device", vn:"Máy kiểm soát thời tiết", cost:5000, req:"Phòng thí nghiệm", ic:"storm", r:["bd"], d:"Gọi bão sét giáng xuống một vùng trong vài chục giây. Hồi chiêu 10 phút.", s:"Phá cụm công trình", w:"Đắt, địch thấy trước để kịp sơ tán" },
+
+  // ---------------- LIÊN XÔ ----------------
+  { f:"soviet", c:"build", en:"Construction Yard", vn:"Sân xây dựng", cost:3000, req:"Triển khai từ MCV", r:["eco"], d:"Trung tâm căn cứ, cho phép xây mọi công trình.", s:"Không thể thiếu", w:"Mục tiêu hàng đầu của địch" },
+  { f:"soviet", c:"build", en:"Tesla Reactor", vn:"Lò phản ứng Tesla", cost:600, req:"Sân xây dựng", r:["eco"], d:"Cấp 150 điện, rẻ hơn nhà máy điện Đồng Minh.", s:"Rẻ", w:"Ít điện, phải xây nhiều" },
+  { f:"soviet", c:"build", en:"Ore Refinery", vn:"Nhà máy lọc quặng", cost:2000, req:"Lò Tesla", r:["eco"], d:"Nhận quặng từ War Miner. Đi kèm 1 War Miner miễn phí.", s:"Nguồn thu chính", w:"Spy lấy cắp tiền" },
+  { f:"soviet", c:"build", en:"Barracks", vn:"Trại lính", cost:500, req:"Lò Tesla", r:[], d:"Huấn luyện bộ binh Liên Xô.", s:"Rẻ", w:"" },
+  { f:"soviet", c:"build", en:"War Factory", vn:"Nhà máy chiến xa", cost:2000, req:"Nhà máy lọc quặng, Trại lính", r:[], d:"Sản xuất xe tăng, khí cầu Kirov và các xe khác.", s:"Xây thêm để sản xuất nhanh hơn", w:"" },
+  { f:"soviet", c:"build", en:"Naval Shipyard", vn:"Xưởng đóng tàu", cost:1000, req:"Nhà máy lọc quặng", r:[], d:"Đóng tàu ngầm, tàu chiến và sinh vật biển.", s:"Tự sửa tàu", w:"" },
+  { f:"soviet", c:"build", en:"Radar Tower", vn:"Tháp Radar", cost:1000, req:"Nhà máy lọc quặng", r:["scout"], d:"Bật mini-map và mở khóa đơn vị tầm trung như Tesla Trooper, V3, Crazy Ivan.", s:"Mở cây công nghệ", w:"Spy làm mất radar" },
+  { f:"soviet", c:"build", en:"Service Depot", vn:"Trạm sửa chữa", cost:800, req:"Nhà máy chiến xa", r:["sup"], d:"Sửa xe với phí nhỏ.", s:"Giữ đội tăng bền lâu", w:"" },
+  { f:"soviet", c:"build", en:"Battle Lab", vn:"Phòng thí nghiệm", cost:2000, req:"Nhà máy chiến xa, Tháp Radar", r:[], d:"Mở khóa Apocalypse, Kirov, anh hùng và siêu vũ khí.", s:"Cửa ngõ đơn vị cao cấp", w:"Spy lọt vào giúp địch có đơn vị bí mật" },
+  { f:"soviet", c:"build", en:"Nuclear Reactor", vn:"Lò phản ứng hạt nhân", cost:1000, req:"Phòng thí nghiệm", ic:"nuke", r:["eco"], d:"Cấp tới 2000 điện. Bị phá sẽ nổ như bom hạt nhân nhỏ, gây phóng xạ.", s:"Điện khổng lồ, chiếm ít chỗ", w:"Nổ tung khi bị phá, nguy hiểm cho chính căn cứ" },
+  { f:"soviet", c:"build", en:"Cloning Vats", vn:"Bể nhân bản", cost:2500, req:"Phòng thí nghiệm", r:["sup"], d:"Mỗi lính được huấn luyện sẽ được nhân bản thêm một bản miễn phí (trừ anh hùng). Bán bộ binh vào bể để lấy lại tiền.", s:"Gấp đôi bộ binh", w:"Đắt" },
+  { f:"soviet", c:"build", en:"Industrial Plant", vn:"Nhà máy công nghiệp", cost:2500, req:"Phòng thí nghiệm", yr:true, r:["eco"], d:"Giảm 25% giá mọi xe và tăng tốc sản xuất xe.", s:"Đáng giá khi đánh bằng tăng", w:"Đắt" },
+
+  { f:"soviet", c:"def", en:"Fortress Wall", vn:"Tường thành", cost:100, req:"Sân xây dựng", r:[], d:"Chặn đường và che chắn cho căn cứ.", s:"Rẻ", w:"" },
+  { f:"soviet", c:"def", en:"Sentry Gun", vn:"Súng canh gác", cost:500, req:"Trại lính", r:["ai"], d:"Ụ súng máy chống bộ binh.", s:"Bộ binh", w:"Xe tăng" },
+  { f:"soviet", c:"def", en:"Flak Cannon", vn:"Pháo phòng không", cost:1000, req:"Trại lính", ic:"aa", r:["aa"], d:"Pháo flak bắn đạn nổ tung lên trời.", s:"Máy bay, Rocketeer", w:"Không bắn mặt đất" },
+  { f:"soviet", c:"def", en:"Tesla Coil", vn:"Tháp Tesla", cost:1500, req:"Tháp Radar", ic:"coil", r:["at","ai"], d:"Phóng tia điện cực mạnh. Tesla Trooper đứng cạnh sẽ sạc thêm, giúp tháp chạy cả khi mất điện và bắn mạnh hơn.", s:"Mọi mục tiêu mặt đất", w:"Cần điện, không bắn máy bay" },
+  { f:"soviet", c:"def", en:"Psychic Sensor", vn:"Cảm biến tâm linh", cost:1000, req:"Tháp Radar", ic:"sensor", r:["scout"], d:"Cho thấy đội quân địch đang định tấn công đâu. Phát hiện Mirage Tank và Spy trong tầm.", s:"Lật mặt Mirage và Spy", w:"Không có vũ khí" },
+  { f:"soviet", c:"def", en:"Battle Bunker", vn:"Hầm chiến đấu", cost:600, req:"Trại lính", yr:true, r:["ai","at"], d:"Hầm chứa 5 lính, lính bắn ra từ bên trong.", s:"Biến bộ binh thành công sự", w:"Dễ bị dọn bằng Desolator hay vũ khí phá nhà" },
+
+  { f:"soviet", c:"inf", en:"Conscript", vn:"Lính nghĩa vụ", cost:100, req:"Trại lính", r:["ai"], d:"Lính rẻ nhất game, đông là sức mạnh.", s:"Bộ binh, làm lá chắn thịt", w:"Gần như mọi thứ khác" },
+  { f:"soviet", c:"inf", en:"Tesla Trooper", vn:"Lính Tesla", cost:500, req:"Tháp Radar", ic:"tesla", r:["at","ai"], d:"Mặc giáp nặng, bắn tia điện. Không bị xe cán, sạc được Tesla Coil.", s:"Xe, bộ binh", w:"Sniper, chó" },
+  { f:"soviet", c:"inf", en:"Attack Dog", vn:"Chó tấn công", cost:200, req:"Trại lính", ic:"dog", r:["ai","scout"], d:"Cắn chết bộ binh một phát, phát hiện Spy.", s:"Bộ binh", w:"Xe" },
+  { f:"soviet", c:"inf", en:"Engineer", vn:"Kỹ sư", cost:500, req:"Trại lính", r:["sup"], d:"Chiếm và sửa công trình.", s:"Chiếm công trình tech", w:"Không có vũ khí" },
+  { f:"soviet", c:"inf", en:"Flak Trooper", vn:"Lính Flak", cost:300, req:"Trại lính", r:["aa"], d:"Bộ binh vác súng flak, bắn được cả máy bay lẫn bộ binh.", s:"Rocketeer, máy bay", w:"Xe" },
+  { f:"soviet", c:"inf", en:"Crazy Ivan", vn:"Ivan Điên", cost:600, req:"Tháp Radar", ic:"ivan", r:["bd"], d:"Gắn bom hẹn giờ lên bất cứ thứ gì: nhà, xe, cả bò và lính của mình rồi cho chạy vào địch.", s:"Công trình, cầu", w:"Chó, bộ binh" },
+  { f:"soviet", c:"inf", en:"Yuri", vn:"Yuri (anh hùng)", cost:1200, req:"Phòng thí nghiệm", ra2:true, ic:"psi", r:["mc"], d:"Chỉ có trong RA2 gốc. Điều khiển tâm trí 1 đơn vị địch, triển khai tạo sóng tâm linh giết bộ binh xung quanh.", s:"Cướp xe tăng địch", w:"Chó, bị bắn tầm xa" },
+  { f:"soviet", c:"inf", en:"Boris", vn:"Boris", cost:1500, req:"Phòng thí nghiệm", yr:true, ic:"hero", r:["ai","bd"], d:"Anh hùng của Liên Xô trong Yuri's Revenge. Súng AKM diệt bộ binh, chỉ điểm bằng laser để gọi máy bay MiG ném bom phá công trình.", s:"Công trình, bộ binh", w:"Phòng không bắn rơi MiG, xe" },
+  { f:"soviet", c:"inf", en:"Terrorist", vn:"Lính cảm tử", cost:200, req:"Trại lính", ct:"cuba", ic:"ivan", r:["bd","at"], d:"Chỉ Cuba có. Mang bom trên người, chạy vào mục tiêu rồi tự nổ.", s:"Xe, nhóm bộ binh, công trình khi đi theo đàn", w:"Chết nổ lan vào quân mình" },
+  { f:"soviet", c:"inf", en:"Desolator", vn:"Lính phóng xạ", cost:600, req:"Tháp Radar", ct:"iraq", ic:"deso", r:["ai","at"], d:"Chỉ Iraq có. Bắn tia phóng xạ, triển khai sẽ nhiễm xạ cả vùng đất, giết bộ binh và làm mòn xe.", s:"Bộ binh, giữ đường hẹp", w:"Xe tăng tầm xa, Sniper" },
+
+  { f:"soviet", c:"veh", en:"MCV", vn:"Xe xây dựng cơ động", cost:3000, req:"Nhà máy chiến xa, Trạm sửa chữa", ic:"mcv", r:["eco"], d:"Triển khai thành Sân xây dựng mới.", s:"Mở rộng căn cứ", w:"Không vũ khí" },
+  { f:"soviet", c:"veh", en:"War Miner", vn:"Xe khai thác War Miner", cost:1400, req:"Nhà máy lọc quặng", ic:"miner", r:["eco"], d:"Xe khai thác bọc giáp dày, có súng máy tự vệ, chở nhiều quặng hơn Chrono Miner.", s:"Bền, tự vệ được", w:"Phải tự chạy về nhà máy lọc" },
+  { f:"soviet", c:"veh", en:"Rhino Tank", vn:"Xe tăng Rhino", cost:900, req:"Nhà máy chiến xa", r:["at"], d:"Tăng chủ lực Liên Xô, giáp dày và pháo mạnh hơn Grizzly.", s:"Đấu tăng, cán bộ binh", w:"Chậm, Tank Destroyer" },
+  { f:"soviet", c:"veh", en:"Flak Track", vn:"Xe Flak", cost:500, req:"Nhà máy chiến xa", ic:"ifv", r:["aa","sup"], d:"Xe bánh xích phòng không, chở được 5 lính.", s:"Máy bay, chở lính đi chiếm nhà", w:"Giáp mỏng" },
+  { f:"soviet", c:"veh", en:"Terror Drone", vn:"Robot nhện Terror Drone", cost:500, req:"Nhà máy chiến xa", ic:"drone", r:["at"], d:"Robot nhện chui vào trong xe địch rồi phá từ bên trong. Chỉ trạm sửa chữa mới gỡ được.", s:"Xe, nhất là xe đắt tiền", w:"Bộ binh, súng máy" },
+  { f:"soviet", c:"veh", en:"V3 Launcher", vn:"Xe phóng tên lửa V3", cost:800, req:"Tháp Radar", ic:"v3", r:["bd"], d:"Phóng tên lửa tầm cực xa vào công trình và đội quân đứng yên.", s:"Phá phòng thủ từ ngoài tầm", w:"Tên lửa có thể bị bắn rơi, xe rất mỏng" },
+  { f:"soviet", c:"veh", en:"Apocalypse Tank", vn:"Xe tăng Apocalypse", cost:1750, req:"Phòng thí nghiệm", ic:"apoc", r:["at","aa"], d:"Tăng hạng nặng 2 nòng pháo cùng bệ tên lửa phòng không, tự hồi máu.", s:"Gần như mọi thứ", w:"Rất chậm, đắt, Chrono Legionnaire" },
+  { f:"soviet", c:"veh", en:"Tesla Tank", vn:"Xe tăng Tesla", cost:1200, req:"Tháp Radar", ct:"russia", ic:"teslatank", r:["at","ai"], d:"Chỉ Nga có. Bắn tia điện, hiệu quả với cả xe lẫn bộ binh, nhanh hơn Rhino.", s:"Bộ binh, xe", w:"Giáp mỏng hơn Rhino" },
+  { f:"soviet", c:"veh", en:"Demolition Truck", vn:"Xe bom", cost:1500, req:"Tháp Radar", ct:"libya", ic:"truck", r:["bd"], d:"Chỉ Libya có. Xe tải chở bom hạt nhân nhỏ, lao vào mục tiêu và phát nổ.", s:"Phá cụm công trình", w:"Bị bắn nổ giữa đường, Iron Curtain không cứu được" },
+  { f:"soviet", c:"veh", en:"Amphibious Transport", vn:"Xe đổ bộ", cost:900, req:"Xưởng đóng tàu", ic:"hover", r:["sup"], d:"Chở bộ binh và xe vượt biển.", s:"Đổ bộ", w:"Không vũ khí" },
+
+  { f:"soviet", c:"air", en:"Kirov Airship", vn:"Khí cầu Kirov", cost:2000, req:"Phòng thí nghiệm", ic:"blimp", r:["bd"], d:"Khí cầu khổng lồ thả bom cực nặng. \"Kirov reporting!\" Bị bắn rơi sẽ đè nổ mọi thứ bên dưới.", s:"Xóa sổ căn cứ địch", w:"Rất chậm, phòng không, IFV, Aegis" },
+  { f:"soviet", c:"air", en:"Siege Chopper", vn:"Trực thăng Siege", cost:1100, req:"Tháp Radar", yr:true, ic:"heli", r:["ai","bd"], d:"Bay thì bắn súng máy, hạ cánh và triển khai thành pháo binh tầm xa.", s:"Linh hoạt trinh sát và pháo kích", w:"Phòng không" },
+
+  { f:"soviet", c:"naval", en:"Typhoon Attack Sub", vn:"Tàu ngầm Typhoon", cost:1000, req:"Xưởng đóng tàu", ic:"sub", r:["at"], d:"Tàu ngầm lặn tàng hình, phóng ngư lôi mạnh.", s:"Tàu nổi", w:"Khu trục hạm, cá heo" },
+  { f:"soviet", c:"naval", en:"Sea Scorpion", vn:"Tàu Sea Scorpion", cost:600, req:"Xưởng đóng tàu", ic:"ship", r:["aa"], d:"Tàu nhỏ bắn flak, bảo vệ hạm đội khỏi máy bay.", s:"Máy bay, Hornet", w:"Tàu khác" },
+  { f:"soviet", c:"naval", en:"Giant Squid", vn:"Mực khổng lồ", cost:1000, req:"Xưởng đóng tàu, Phòng thí nghiệm", ic:"squid", r:["at"], d:"Mực biến đổi gen, quấn lấy tàu địch và bóp nát. Tàng hình dưới nước.", s:"Tàu nổi", w:"Cá heo giải cứu được" },
+  { f:"soviet", c:"naval", en:"Dreadnought", vn:"Chiến hạm Dreadnought", cost:2000, req:"Xưởng đóng tàu, Phòng thí nghiệm", ic:"ship", r:["bd"], d:"Chiến hạm phóng tên lửa tầm xa vào bờ, cùng loại với V3.", s:"Phá căn cứ ven biển", w:"Tàu ngầm, cá heo" },
+
+  { f:"soviet", c:"sw", en:"Iron Curtain", vn:"Bức màn sắt", cost:2500, req:"Phòng thí nghiệm", ic:"curtain", r:["sup"], d:"Khiến một nhóm xe hoặc công trình bất tử trong một khoảng thời gian ngắn. Hồi chiêu 5 phút. Bộ binh trúng sẽ chết.", s:"Cho đội tăng xông thẳng vào căn cứ địch", w:"Không dùng cho bộ binh" },
+  { f:"soviet", c:"sw", en:"Nuclear Missile Silo", vn:"Hầm tên lửa hạt nhân", cost:5000, req:"Phòng thí nghiệm", ic:"nuke", r:["bd"], d:"Phóng tên lửa hạt nhân xuống bất kỳ đâu, để lại vùng nhiễm xạ. Hồi chiêu 10 phút.", s:"Xóa sổ một khu căn cứ", w:"Đắt, địch được cảnh báo trước" },
+
+  // ---------------- YURI ----------------
+  { f:"yuri", c:"build", en:"Construction Yard", vn:"Sân xây dựng", cost:3000, req:"Triển khai từ MCV", yr:true, r:["eco"], d:"Trung tâm căn cứ của Yuri.", s:"Không thể thiếu", w:"" },
+  { f:"yuri", c:"build", en:"Bio Reactor", vn:"Lò phản ứng sinh học", cost:600, req:"Sân xây dựng", yr:true, r:["eco"], d:"Cấp 150 điện. Cho tối đa 5 bộ binh vào trong để tăng thêm điện.", s:"Rẻ, tăng điện bằng lính", w:"Bị phá thì lính bên trong cũng chết" },
+  { f:"yuri", c:"build", en:"Slave Miner", vn:"Xe/nhà khai thác nô lệ", cost:1500, req:"Lò sinh học", yr:true, ic:"miner", r:["eco"], d:"Vừa là xe vừa là nhà máy lọc: triển khai ngay cạnh mỏ, nô lệ đi đào quặng mang về. Thay cho Ore Refinery của Yuri.", s:"Đặt sát mỏ, không cần đường dài", w:"Nô lệ dễ bị giết hoặc bị giải phóng" },
+  { f:"yuri", c:"build", en:"Barracks", vn:"Trại lính", cost:500, req:"Lò sinh học", yr:true, r:[], d:"Huấn luyện bộ binh Yuri.", s:"", w:"" },
+  { f:"yuri", c:"build", en:"Factory", vn:"Nhà máy chiến xa", cost:2000, req:"Slave Miner, Trại lính", yr:true, r:[], d:"Sản xuất xe của Yuri, kể cả Floating Disc.", s:"", w:"" },
+  { f:"yuri", c:"build", en:"Submarine Pen", vn:"Xưởng tàu ngầm", cost:1000, req:"Slave Miner", yr:true, r:[], d:"Đóng tàu ngầm Boomer và xe đổ bộ.", s:"", w:"" },
+  { f:"yuri", c:"build", en:"Psychic Radar", vn:"Radar tâm linh", cost:1000, req:"Slave Miner", yr:true, r:["scout"], d:"Bật radar, cho thấy đường tấn công dự kiến của địch.", s:"Mở cây công nghệ tầm trung", w:"" },
+  { f:"yuri", c:"build", en:"Grinder", vn:"Máy nghiền", cost:800, req:"Nhà máy chiến xa", yr:true, ic:"grinder", r:["eco"], d:"Cho đơn vị (kể cả đơn vị cướp được của địch) vào nghiền để đổi lấy tiền.", s:"Biến tù binh thành tiền", w:"" },
+  { f:"yuri", c:"build", en:"Battle Lab", vn:"Phòng thí nghiệm", cost:2000, req:"Nhà máy chiến xa, Radar tâm linh", yr:true, r:[], d:"Mở khóa Mastermind, Yuri Prime, Boomer và siêu vũ khí.", s:"", w:"" },
+  { f:"yuri", c:"build", en:"Cloning Vats", vn:"Bể nhân bản", cost:2500, req:"Phòng thí nghiệm", yr:true, r:["sup"], d:"Nhân đôi mỗi lính được huấn luyện.", s:"Gấp đôi bộ binh", w:"Đắt" },
+
+  { f:"yuri", c:"def", en:"Citadel Wall", vn:"Tường thành", cost:100, req:"Sân xây dựng", yr:true, r:[], d:"Tường bảo vệ căn cứ Yuri.", s:"Rẻ", w:"" },
+  { f:"yuri", c:"def", en:"Gattling Cannon", vn:"Pháo Gatling", cost:1000, req:"Trại lính", yr:true, ic:"aa", r:["ai","aa"], d:"Súng quay nhiều nòng, càng bắn lâu càng nhanh. Bắn được cả bộ binh lẫn máy bay.", s:"Bộ binh, máy bay", w:"Xe tăng" },
+  { f:"yuri", c:"def", en:"Psychic Tower", vn:"Tháp tâm linh", cost:1500, req:"Radar tâm linh", yr:true, ic:"psitower", r:["mc"], d:"Điều khiển tâm trí tối đa 3 đơn vị địch đi vào tầm.", s:"Biến quân địch thành quân mình", w:"Robot Tank, Terror Drone, chó không ảnh hưởng nhiều; mất điện là thả hết" },
+  { f:"yuri", c:"def", en:"Tank Bunker", vn:"Hầm xe tăng", cost:200, req:"Nhà máy chiến xa", yr:true, ic:"bunker", r:["sup"], d:"Cho 1 xe vào để được bọc giáp thêm và tăng tốc độ bắn.", s:"Biến xe thành ụ súng", w:"Xe không di chuyển được khi ở trong" },
+
+  { f:"yuri", c:"inf", en:"Initiate", vn:"Môn đồ", cost:200, req:"Trại lính", yr:true, ic:"psi", r:["ai"], d:"Lính cơ bản của Yuri, bắn sóng tâm linh. Phát hiện được Spy.", s:"Bộ binh", w:"Xe" },
+  { f:"yuri", c:"inf", en:"Engineer", vn:"Kỹ sư", cost:500, req:"Trại lính", yr:true, r:["sup"], d:"Chiếm và sửa công trình.", s:"", w:"Không vũ khí" },
+  { f:"yuri", c:"inf", en:"Brute", vn:"Quái vật Brute", cost:500, req:"Trại lính", yr:true, ic:"brute", r:["at","ai"], d:"Người bị đột biến thành quái vật, đấm tay không vào xe và lính.", s:"Xe, bộ binh ở gần", w:"Đơn vị tầm xa" },
+  { f:"yuri", c:"inf", en:"Virus", vn:"Lính Virus", cost:800, req:"Radar tâm linh", yr:true, ic:"sniper", r:["ai"], d:"Lính bắn tỉa dùng phi tiêu độc, nạn nhân nổ thành đám khí độc giết lính xung quanh.", s:"Bộ binh từ xa", w:"Xe" },
+  { f:"yuri", c:"inf", en:"Yuri Clone", vn:"Bản sao Yuri", cost:800, req:"Radar tâm linh", yr:true, ic:"psi", r:["mc"], d:"Điều khiển tâm trí 1 đơn vị, triển khai phát sóng tâm linh giết bộ binh xung quanh.", s:"Cướp xe tăng", w:"Chó, Robot Tank" },
+  { f:"yuri", c:"inf", en:"Yuri Prime", vn:"Yuri Prime", cost:2000, req:"Phòng thí nghiệm", yr:true, ic:"hero", r:["mc"], d:"Anh hùng của Yuri. Điều khiển tâm trí được cả công trình, mạnh hơn Yuri Clone.", s:"Cướp nhà máy, sân xây dựng địch", w:"Chó, Sniper" },
+
+  { f:"yuri", c:"veh", en:"MCV", vn:"Xe xây dựng cơ động", cost:3000, req:"Nhà máy chiến xa", yr:true, ic:"mcv", r:["eco"], d:"Triển khai thành Sân xây dựng.", s:"", w:"" },
+  { f:"yuri", c:"veh", en:"Lasher Light Tank", vn:"Xe tăng nhẹ Lasher", cost:700, req:"Nhà máy chiến xa", yr:true, r:["at"], d:"Tăng nhẹ cơ bản của Yuri, nhanh, rẻ.", s:"Xe", w:"Giáp mỏng" },
+  { f:"yuri", c:"veh", en:"Gattling Tank", vn:"Xe tăng Gatling", cost:600, req:"Nhà máy chiến xa", yr:true, ic:"ifv", r:["ai","aa"], d:"Súng Gatling quay càng lâu càng nhanh, bắn được bộ binh và máy bay.", s:"Bộ binh, máy bay", w:"Xe tăng" },
+  { f:"yuri", c:"veh", en:"Chaos Drone", vn:"Robot Chaos Drone", cost:1000, req:"Radar tâm linh", yr:true, ic:"drone", r:["sup"], d:"Phun khí làm đơn vị địch phát điên, tấn công cả đồng đội.", s:"Đội quân đứng dày", w:"Giáp mỏng" },
+  { f:"yuri", c:"veh", en:"Magnetron", vn:"Xe nam châm Magnetron", cost:1000, req:"Radar tâm linh", yr:true, ic:"magnet", r:["at","bd"], d:"Dùng từ trường nhấc xe địch lên không rồi thả rơi, hoặc kéo xe về phía mình. Tầm xa, bắn được cả công trình.", s:"Xe tăng, Battle Fortress, phòng thủ", w:"Bộ binh, giáp mỏng" },
+  { f:"yuri", c:"veh", en:"Mastermind", vn:"Xe Mastermind", cost:1750, req:"Phòng thí nghiệm", yr:true, ic:"brain", r:["mc"], d:"Cỗ máy điều khiển tâm trí nhiều đơn vị cùng lúc. Vượt quá giới hạn thì chính nó sẽ bị quá tải và mất máu.", s:"Cướp cả đội quân", w:"Robot Tank, đơn vị không bị điều khiển" },
+  { f:"yuri", c:"veh", en:"Floating Disc", vn:"Đĩa bay", cost:1250, req:"Radar tâm linh", yr:true, ic:"disc", r:["at","sup"], d:"Đĩa bay hút điện để tắt phòng thủ địch, hút tiền từ nhà máy lọc, hút sạch radar.", s:"Tắt phòng thủ, quấy rối kinh tế", w:"Phòng không" },
+  { f:"yuri", c:"veh", en:"Amphibious Transport", vn:"Xe đổ bộ", cost:900, req:"Xưởng tàu ngầm", yr:true, ic:"hover", r:["sup"], d:"Chở bộ binh và xe vượt biển.", s:"", w:"Không vũ khí" },
+
+  { f:"yuri", c:"naval", en:"Boomer Submarine", vn:"Tàu ngầm Boomer", cost:2000, req:"Xưởng tàu ngầm, Phòng thí nghiệm", yr:true, ic:"sub", r:["at","bd"], d:"Tàu ngầm phóng ngư lôi đánh tàu và tên lửa hành trình bắn lên bờ.", s:"Tàu, căn cứ ven biển", w:"Khu trục hạm, cá heo" },
+
+  { f:"yuri", c:"sw", en:"Genetic Mutator", vn:"Máy đột biến gen", cost:2500, req:"Phòng thí nghiệm", yr:true, ic:"mutate", r:["sup"], d:"Biến toàn bộ bộ binh trong vùng (cả địch lẫn ta) thành Brute thuộc phe Yuri.", s:"Xóa đội bộ binh địch và tạo quân mới", w:"Không ảnh hưởng xe" },
+  { f:"yuri", c:"sw", en:"Psychic Dominator", vn:"Cỗ máy thống trị tâm linh", cost:5000, req:"Phòng thí nghiệm", yr:true, ic:"dominator", r:["mc","bd"], d:"Gây sát thương một vùng và điều khiển vĩnh viễn mọi đơn vị còn sống sót trong đó. Hồi chiêu 10 phút.", s:"Đổi phe cả một đội quân", w:"Đắt, Robot Tank miễn nhiễm" },
+
+  // ---------------- TECH ----------------
+  { f:"tech", c:"build", en:"Oil Derrick", vn:"Giếng dầu", cost:0, req:"Chiếm bằng Kỹ sư", ic:"oil", r:["eco"], d:"Thưởng tiền khi chiếm rồi cấp thêm tiền đều đặn cho tới hết trận.", s:"Thu nhập không cần xe khai thác", w:"Dễ bị phá" },
+  { f:"tech", c:"build", en:"Hospital", vn:"Bệnh viện", cost:0, req:"Chiếm bằng Kỹ sư", ic:"hospital", r:["sup"], d:"Bộ binh tự hồi máu dần trên toàn bản đồ.", s:"Bộ binh bền hơn", w:"" },
+  { f:"tech", c:"build", en:"Machine Shop", vn:"Xưởng cơ khí", cost:0, req:"Chiếm bằng Kỹ sư", r:["sup"], d:"Xe tự hồi máu dần trên toàn bản đồ.", s:"Không cần chạy về trạm sửa", w:"" },
+  { f:"tech", c:"build", en:"Airport", vn:"Sân bay", cost:0, req:"Chiếm bằng Kỹ sư", ic:"para", r:["sup"], d:"Mở năng lực gọi lính dù định kỳ, kể cả với phe không phải Mỹ.", s:"Lính miễn phí", w:"" },
+  { f:"tech", c:"build", en:"Secret Lab", vn:"Phòng thí nghiệm bí mật", cost:0, req:"Chiếm bằng Kỹ sư", r:["sup"], d:"Mở khóa một đơn vị đặc biệt mà phe mình bình thường không có, tùy bản đồ.", s:"Đơn vị độc quyền", w:"" },
+  { f:"tech", c:"build", en:"Tech Power Plant", vn:"Nhà máy điện trung lập", cost:0, req:"Chiếm bằng Kỹ sư", r:["eco"], d:"Cấp điện miễn phí cho căn cứ.", s:"Điện không tốn chỗ", w:"" },
+  { f:"tech", c:"build", en:"Outpost", vn:"Tiền đồn", cost:0, req:"Chiếm bằng Kỹ sư", yr:true, r:["sup"], d:"Cho phép xây công trình quanh nó như một sân xây dựng phụ.", s:"Mở rộng vùng xây dựng", w:"" },
+  { f:"tech", c:"def", en:"Bridge Repair Hut", vn:"Chòi sửa cầu", cost:0, req:"Kỹ sư đi vào", ic:"bunker", r:["sup"], d:"Cho Kỹ sư vào để sửa lại cây cầu đã bị phá gần đó.", s:"Mở lại đường tiến quân", w:"" },
+  { f:"tech", c:"def", en:"Civilian Buildings", vn:"Nhà dân", cost:0, req:"Bộ binh vào chiếm", ic:"civ", r:["sup"], d:"Đa số nhà dân cho bộ binh chui vào và bắn ra từ cửa sổ.", s:"Biến thành pháo đài", w:"Desolator, Virus, Flame, V3 dọn sạch" },
+];
+
+// key -> { cameo, art, page } ; filled in at build time from the downloaded wiki images
+const IMG = {"allied-construction-yard":{"art":"ra2-anh/art/allied-construction-yard.jpg","page":"Allied construction yard (Red Alert 2)"},"allied-power-plant":{"cameo":"ra2-anh/cameo/allied-power-plant.png","art":"ra2-anh/art/allied-power-plant.jpg","page":"Power plant (Red Alert 2)"},"allied-ore-refinery":{"cameo":"ra2-anh/cameo/allied-ore-refinery.png","art":"ra2-anh/art/allied-ore-refinery.gif","page":"Allied ore refinery (Red Alert 2)"},"allied-barracks":{"cameo":"ra2-anh/cameo/allied-barracks.png","art":"ra2-anh/art/allied-barracks.png","page":"Allied barracks (Red Alert 2)"},"allied-war-factory":{"cameo":"ra2-anh/cameo/allied-war-factory.png","art":"ra2-anh/art/allied-war-factory.gif","page":"Allied war factory (Red Alert 2)"},"allied-naval-shipyard":{"cameo":"ra2-anh/cameo/allied-naval-shipyard.png","art":"ra2-anh/art/allied-naval-shipyard.jpg","page":"Allied naval shipyard (Red Alert 2)"},"allied-air-force-command-hq":{"cameo":"ra2-anh/cameo/allied-air-force-command-hq.png","art":"ra2-anh/art/allied-air-force-command-hq.png","page":"Airforce Command Headquarters"},"allied-service-depot":{"cameo":"ra2-anh/cameo/allied-service-depot.png","art":"ra2-anh/art/allied-service-depot.gif","page":"Allied Service Depot (Red Alert 2)"},"allied-battle-lab":{"cameo":"ra2-anh/cameo/allied-battle-lab.png","art":"ra2-anh/art/allied-battle-lab.gif","page":"Allied battle lab"},"allied-ore-purifier":{"cameo":"ra2-anh/cameo/allied-ore-purifier.png","art":"ra2-anh/art/allied-ore-purifier.png","page":"Ore purifier"},"allied-spy-satellite-uplink":{"cameo":"ra2-anh/cameo/allied-spy-satellite-uplink.png","art":"ra2-anh/art/allied-spy-satellite-uplink.png","page":"SpySat Uplink"},"allied-gap-generator":{"cameo":"ra2-anh/cameo/allied-gap-generator.png","art":"ra2-anh/art/allied-gap-generator.jpg","page":"Gap generator (Red Alert 2)"},"allied-robot-control-center":{"cameo":"ra2-anh/cameo/allied-robot-control-center.png","art":"ra2-anh/art/allied-robot-control-center.png","page":"Robot control center"},"allied-fortress-wall":{"cameo":"ra2-anh/cameo/allied-fortress-wall.png","art":"ra2-anh/art/allied-fortress-wall.jpg","page":"Fortress walls (Red Alert 2)"},"allied-pillbox":{"cameo":"ra2-anh/cameo/allied-pillbox.png","page":"Pillbox (Red Alert 2)"},"allied-patriot-missile-system":{"cameo":"ra2-anh/cameo/allied-patriot-missile-system.png","art":"ra2-anh/art/allied-patriot-missile-system.png","page":"Patriot missile system (Red Alert 2)"},"allied-prism-tower":{"cameo":"ra2-anh/cameo/allied-prism-tower.png","art":"ra2-anh/art/allied-prism-tower.png","page":"Prism tower (Red Alert 2)"},"allied-grand-cannon":{"cameo":"ra2-anh/cameo/allied-grand-cannon.png","art":"ra2-anh/art/allied-grand-cannon.jpg","page":"Grand cannon"},"allied-gi":{"cameo":"ra2-anh/cameo/allied-gi.png","art":"ra2-anh/art/allied-gi.jpg","page":"GI"},"allied-guardian-gi":{"cameo":"ra2-anh/cameo/allied-guardian-gi.png","art":"ra2-anh/art/allied-guardian-gi.png","page":"Guardian GI"},"allied-engineer":{"cameo":"ra2-anh/cameo/allied-engineer.png","art":"ra2-anh/art/allied-engineer.jpg","page":"Engineer (Red Alert 2)"},"allied-attack-dog":{"cameo":"ra2-anh/cameo/allied-attack-dog.png","art":"ra2-anh/art/allied-attack-dog.png","page":"Attack dog (Red Alert 2)"},"allied-rocketeer":{"cameo":"ra2-anh/cameo/allied-rocketeer.png","art":"ra2-anh/art/allied-rocketeer.jpg","page":"Rocketeer"},"allied-spy":{"cameo":"ra2-anh/cameo/allied-spy.png","art":"ra2-anh/art/allied-spy.png","page":"Spy (Red Alert 2)"},"allied-navy-seal":{"cameo":"ra2-anh/cameo/allied-navy-seal.png","art":"ra2-anh/art/allied-navy-seal.png","page":"Navy SEAL (Red Alert 2)"},"allied-tanya":{"cameo":"ra2-anh/cameo/allied-tanya.png","art":"ra2-anh/art/allied-tanya.png","page":"Tanya (Red Alert 2)"},"allied-chrono-legionnaire":{"cameo":"ra2-anh/cameo/allied-chrono-legionnaire.png","art":"ra2-anh/art/allied-chrono-legionnaire.png","page":"Chrono legionnaire"},"allied-sniper":{"cameo":"ra2-anh/cameo/allied-sniper.png","art":"ra2-anh/art/allied-sniper.jpg","page":"Sniper (Red Alert 2)"},"allied-paratroopers":{"cameo":"ra2-anh/cameo/allied-paratroopers.png","art":"ra2-anh/art/allied-paratroopers.png","page":"Paradrop (Red Alert 2)"},"allied-mcv":{"cameo":"ra2-anh/cameo/allied-mcv.png","art":"ra2-anh/art/allied-mcv.png","page":"Mobile construction vehicle (Red Alert 2)"},"allied-chrono-miner":{"cameo":"ra2-anh/cameo/allied-chrono-miner.png","art":"ra2-anh/art/allied-chrono-miner.png","page":"Chrono Miner"},"allied-grizzly-battle-tank":{"cameo":"ra2-anh/cameo/allied-grizzly-battle-tank.png","art":"ra2-anh/art/allied-grizzly-battle-tank.png","page":"Grizzly Battle Tank"},"allied-infantry-fighting-vehicle":{"cameo":"ra2-anh/cameo/allied-infantry-fighting-vehicle.png","art":"ra2-anh/art/allied-infantry-fighting-vehicle.png","page":"Infantry Fighting Vehicle"},"allied-mirage-tank":{"cameo":"ra2-anh/cameo/allied-mirage-tank.png","art":"ra2-anh/art/allied-mirage-tank.png","page":"Mirage tank (Red Alert 2)"},"allied-prism-tank":{"cameo":"ra2-anh/cameo/allied-prism-tank.png","art":"ra2-anh/art/allied-prism-tank.png","page":"Prism tank (Red Alert 2)"},"allied-tank-destroyer":{"cameo":"ra2-anh/cameo/allied-tank-destroyer.png","art":"ra2-anh/art/allied-tank-destroyer.png","page":"Tank destroyer"},"allied-robot-tank":{"cameo":"ra2-anh/cameo/allied-robot-tank.png","art":"ra2-anh/art/allied-robot-tank.png","page":"Robot Tank"},"allied-battle-fortress":{"cameo":"ra2-anh/cameo/allied-battle-fortress.png","art":"ra2-anh/art/allied-battle-fortress.png","page":"Battle Fortress"},"allied-amphibious-transport":{"cameo":"ra2-anh/cameo/allied-amphibious-transport.png","art":"ra2-anh/art/allied-amphibious-transport.jpg","page":"Amphibious transport (Red Alert 2)"},"allied-harrier":{"cameo":"ra2-anh/cameo/allied-harrier.png","art":"ra2-anh/art/allied-harrier.png","page":"Harrier"},"allied-black-eagle":{"cameo":"ra2-anh/cameo/allied-black-eagle.png","art":"ra2-anh/art/allied-black-eagle.png","page":"Black Eagle"},"allied-night-hawk-transport":{"cameo":"ra2-anh/cameo/allied-night-hawk-transport.png","art":"ra2-anh/art/allied-night-hawk-transport.png","page":"NightHawk transport"},"allied-destroyer":{"cameo":"ra2-anh/cameo/allied-destroyer.png","art":"ra2-anh/art/allied-destroyer.png","page":"Destroyer (Red Alert 2)"},"allied-aegis-cruiser":{"cameo":"ra2-anh/cameo/allied-aegis-cruiser.png","art":"ra2-anh/art/allied-aegis-cruiser.png","page":"Aegis cruiser"},"allied-dolphin":{"cameo":"ra2-anh/cameo/allied-dolphin.png","art":"ra2-anh/art/allied-dolphin.png","page":"Dolphin (Red Alert 2)"},"allied-aircraft-carrier":{"cameo":"ra2-anh/cameo/allied-aircraft-carrier.png","art":"ra2-anh/art/allied-aircraft-carrier.png","page":"Aircraft carrier (Red Alert 2)"},"allied-chronosphere":{"cameo":"ra2-anh/cameo/allied-chronosphere.png","art":"ra2-anh/art/allied-chronosphere.jpg","page":"Chronosphere (Red Alert 2)"},"allied-weather-control-device":{"cameo":"ra2-anh/cameo/allied-weather-control-device.png","art":"ra2-anh/art/allied-weather-control-device.jpg","page":"Weather control device (Red Alert 2)"},"soviet-construction-yard":{"art":"ra2-anh/art/soviet-construction-yard.jpg","page":"Soviet construction yard (Red Alert 2)"},"soviet-tesla-reactor":{"cameo":"ra2-anh/cameo/soviet-tesla-reactor.png","art":"ra2-anh/art/soviet-tesla-reactor.png","page":"Tesla reactor"},"soviet-ore-refinery":{"cameo":"ra2-anh/cameo/soviet-ore-refinery.png","art":"ra2-anh/art/soviet-ore-refinery.jpg","page":"Soviet ore refinery (Red Alert 2)"},"soviet-barracks":{"cameo":"ra2-anh/cameo/soviet-barracks.png","art":"ra2-anh/art/soviet-barracks.jpg","page":"Soviet barracks (Red Alert 2)"},"soviet-war-factory":{"cameo":"ra2-anh/cameo/soviet-war-factory.png","art":"ra2-anh/art/soviet-war-factory.jpg","page":"Soviet war factory (Red Alert 2)"},"soviet-naval-shipyard":{"cameo":"ra2-anh/cameo/soviet-naval-shipyard.png","art":"ra2-anh/art/soviet-naval-shipyard.png","page":"Soviet naval shipyard (Red Alert 2)"},"soviet-radar-tower":{"cameo":"ra2-anh/cameo/soviet-radar-tower.png","art":"ra2-anh/art/soviet-radar-tower.png","page":"Radar tower"},"soviet-service-depot":{"cameo":"ra2-anh/cameo/soviet-service-depot.png","art":"ra2-anh/art/soviet-service-depot.gif","page":"Soviet Service Depot (Red Alert 2)"},"soviet-battle-lab":{"cameo":"ra2-anh/cameo/soviet-battle-lab.png","art":"ra2-anh/art/soviet-battle-lab.gif","page":"Soviet battle lab (Red Alert 2)"},"soviet-nuclear-reactor":{"cameo":"ra2-anh/cameo/soviet-nuclear-reactor.png","art":"ra2-anh/art/soviet-nuclear-reactor.gif","page":"Nuclear reactor (Red Alert 2)"},"soviet-cloning-vats":{"cameo":"ra2-anh/cameo/soviet-cloning-vats.png","art":"ra2-anh/art/soviet-cloning-vats.jpg","page":"Cloning vat"},"soviet-industrial-plant":{"cameo":"ra2-anh/cameo/soviet-industrial-plant.png","art":"ra2-anh/art/soviet-industrial-plant.gif","page":"Industrial plant"},"soviet-fortress-wall":{"cameo":"ra2-anh/cameo/soviet-fortress-wall.png","art":"ra2-anh/art/soviet-fortress-wall.jpg","page":"Fortress walls (Red Alert 2)"},"soviet-sentry-gun":{"cameo":"ra2-anh/cameo/soviet-sentry-gun.png","page":"Sentry gun (Red Alert 2)"},"soviet-flak-cannon":{"cameo":"ra2-anh/cameo/soviet-flak-cannon.png","art":"ra2-anh/art/soviet-flak-cannon.png","page":"Flak cannon (Red Alert 2)"},"soviet-tesla-coil":{"cameo":"ra2-anh/cameo/soviet-tesla-coil.png","art":"ra2-anh/art/soviet-tesla-coil.png","page":"Tesla coil (Red Alert 2)"},"soviet-psychic-sensor":{"cameo":"ra2-anh/cameo/soviet-psychic-sensor.png","art":"ra2-anh/art/soviet-psychic-sensor.gif","page":"Psychic sensor"},"soviet-battle-bunker":{"cameo":"ra2-anh/cameo/soviet-battle-bunker.png","art":"ra2-anh/art/soviet-battle-bunker.jpg","page":"Battle bunker (Yuri's Revenge)"},"soviet-conscript":{"cameo":"ra2-anh/cameo/soviet-conscript.png","art":"ra2-anh/art/soviet-conscript.png","page":"Conscript (Red Alert 2)"},"soviet-tesla-trooper":{"cameo":"ra2-anh/cameo/soviet-tesla-trooper.png","art":"ra2-anh/art/soviet-tesla-trooper.jpg","page":"Tesla trooper (Red Alert 2)"},"soviet-attack-dog":{"cameo":"ra2-anh/cameo/soviet-attack-dog.png","art":"ra2-anh/art/soviet-attack-dog.png","page":"Attack dog (Red Alert 2)"},"soviet-engineer":{"cameo":"ra2-anh/cameo/soviet-engineer.png","art":"ra2-anh/art/soviet-engineer.jpg","page":"Engineer (Red Alert 2)"},"soviet-flak-trooper":{"cameo":"ra2-anh/cameo/soviet-flak-trooper.png","page":"Flak trooper (Red Alert 2)"},"soviet-crazy-ivan":{"cameo":"ra2-anh/cameo/soviet-crazy-ivan.png","art":"ra2-anh/art/soviet-crazy-ivan.jpg","page":"Crazy Ivan"},"soviet-yuri":{"cameo":"ra2-anh/cameo/soviet-yuri.png","art":"ra2-anh/art/soviet-yuri.png","page":"Psi-Corps trooper"},"soviet-boris":{"cameo":"ra2-anh/cameo/soviet-boris.png","art":"ra2-anh/art/soviet-boris.jpg","page":"Boris"},"soviet-terrorist":{"cameo":"ra2-anh/cameo/soviet-terrorist.png","art":"ra2-anh/art/soviet-terrorist.png","page":"Terrorist (Red Alert 2)"},"soviet-desolator":{"cameo":"ra2-anh/cameo/soviet-desolator.png","art":"ra2-anh/art/soviet-desolator.png","page":"Desolator (Red Alert 2)"},"soviet-mcv":{"cameo":"ra2-anh/cameo/soviet-mcv.png","art":"ra2-anh/art/soviet-mcv.png","page":"Mobile construction vehicle (Red Alert 2)"},"soviet-war-miner":{"cameo":"ra2-anh/cameo/soviet-war-miner.png","art":"ra2-anh/art/soviet-war-miner.png","page":"War miner"},"soviet-rhino-tank":{"cameo":"ra2-anh/cameo/soviet-rhino-tank.png","art":"ra2-anh/art/soviet-rhino-tank.png","page":"Rhino tank (Red Alert 2)"},"soviet-flak-track":{"cameo":"ra2-anh/cameo/soviet-flak-track.png","art":"ra2-anh/art/soviet-flak-track.png","page":"Flak Track"},"soviet-terror-drone":{"cameo":"ra2-anh/cameo/soviet-terror-drone.png","art":"ra2-anh/art/soviet-terror-drone.png","page":"Terror Drone (Red Alert 2)"},"soviet-v3-launcher":{"cameo":"ra2-anh/cameo/soviet-v3-launcher.png","art":"ra2-anh/art/soviet-v3-launcher.png","page":"V3 rocket launcher"},"soviet-apocalypse-tank":{"cameo":"ra2-anh/cameo/soviet-apocalypse-tank.png","art":"ra2-anh/art/soviet-apocalypse-tank.png","page":"Apocalypse tank (Red Alert 2)"},"soviet-tesla-tank":{"cameo":"ra2-anh/cameo/soviet-tesla-tank.png","art":"ra2-anh/art/soviet-tesla-tank.png","page":"Tesla tank (Red Alert 2)"},"soviet-demolition-truck":{"cameo":"ra2-anh/cameo/soviet-demolition-truck.png","art":"ra2-anh/art/soviet-demolition-truck.png","page":"Demolition truck (Red Alert 2)"},"soviet-amphibious-transport":{"cameo":"ra2-anh/cameo/soviet-amphibious-transport.png","art":"ra2-anh/art/soviet-amphibious-transport.jpg","page":"Amphibious transport (Red Alert 2)"},"soviet-kirov-airship":{"cameo":"ra2-anh/cameo/soviet-kirov-airship.png","art":"ra2-anh/art/soviet-kirov-airship.png","page":"Kirov airship (Red Alert 2)"},"soviet-siege-chopper":{"cameo":"ra2-anh/cameo/soviet-siege-chopper.png","art":"ra2-anh/art/soviet-siege-chopper.png","page":"Siege chopper"},"soviet-typhoon-attack-sub":{"cameo":"ra2-anh/cameo/soviet-typhoon-attack-sub.png","art":"ra2-anh/art/soviet-typhoon-attack-sub.png","page":"Typhoon attack submarine"},"soviet-sea-scorpion":{"cameo":"ra2-anh/cameo/soviet-sea-scorpion.png","art":"ra2-anh/art/soviet-sea-scorpion.png","page":"Sea Scorpion"},"soviet-giant-squid":{"cameo":"ra2-anh/cameo/soviet-giant-squid.png","art":"ra2-anh/art/soviet-giant-squid.png","page":"Giant squid"},"soviet-dreadnought":{"cameo":"ra2-anh/cameo/soviet-dreadnought.png","art":"ra2-anh/art/soviet-dreadnought.png","page":"Dreadnought (Red Alert 2)"},"soviet-iron-curtain":{"cameo":"ra2-anh/cameo/soviet-iron-curtain.png","art":"ra2-anh/art/soviet-iron-curtain.jpg","page":"Iron Curtain (Red Alert 2)"},"soviet-nuclear-missile-silo":{"cameo":"ra2-anh/cameo/soviet-nuclear-missile-silo.png","art":"ra2-anh/art/soviet-nuclear-missile-silo.jpg","page":"Nuclear missile silo (Red Alert 2)"},"yuri-construction-yard":{"art":"ra2-anh/art/yuri-construction-yard.gif","page":"Yuri construction yard"},"yuri-bio-reactor":{"cameo":"ra2-anh/cameo/yuri-bio-reactor.png","art":"ra2-anh/art/yuri-bio-reactor.png","page":"Bio reactor"},"yuri-slave-miner":{"cameo":"ra2-anh/cameo/yuri-slave-miner.png","art":"ra2-anh/art/yuri-slave-miner.jpg","page":"Slave miner"},"yuri-barracks":{"cameo":"ra2-anh/cameo/yuri-barracks.png","art":"ra2-anh/art/yuri-barracks.png","page":"Yuri barracks"},"yuri-factory":{"cameo":"ra2-anh/cameo/yuri-factory.png","art":"ra2-anh/art/yuri-factory.gif","page":"Yuri war factory"},"yuri-submarine-pen":{"cameo":"ra2-anh/cameo/yuri-submarine-pen.png","art":"ra2-anh/art/yuri-submarine-pen.gif","page":"Submarine pen (Yuri's Revenge)"},"yuri-psychic-radar":{"cameo":"ra2-anh/cameo/yuri-psychic-radar.png","art":"ra2-anh/art/yuri-psychic-radar.jpg","page":"Psychic radar"},"yuri-grinder":{"cameo":"ra2-anh/cameo/yuri-grinder.png","art":"ra2-anh/art/yuri-grinder.jpg","page":"Grinder (Yuri's Revenge)"},"yuri-battle-lab":{"cameo":"ra2-anh/cameo/yuri-battle-lab.png","art":"ra2-anh/art/yuri-battle-lab.gif","page":"Yuri battle lab"},"yuri-cloning-vats":{"cameo":"ra2-anh/cameo/yuri-cloning-vats.png","art":"ra2-anh/art/yuri-cloning-vats.jpg","page":"Cloning vat"},"yuri-citadel-wall":{"cameo":"ra2-anh/cameo/yuri-citadel-wall.png","art":"ra2-anh/art/yuri-citadel-wall.jpg","page":"Fortress walls (Red Alert 2)"},"yuri-gattling-cannon":{"cameo":"ra2-anh/cameo/yuri-gattling-cannon.png","art":"ra2-anh/art/yuri-gattling-cannon.jpg","page":"Gattling cannon (Yuri's Revenge)"},"yuri-psychic-tower":{"cameo":"ra2-anh/cameo/yuri-psychic-tower.png","art":"ra2-anh/art/yuri-psychic-tower.jpg","page":"Psychic tower"},"yuri-tank-bunker":{"cameo":"ra2-anh/cameo/yuri-tank-bunker.png","art":"ra2-anh/art/yuri-tank-bunker.gif","page":"Tank bunker"},"yuri-initiate":{"cameo":"ra2-anh/cameo/yuri-initiate.png","art":"ra2-anh/art/yuri-initiate.png","page":"Initiate (Yuri's Revenge)"},"yuri-engineer":{"cameo":"ra2-anh/cameo/yuri-engineer.png","art":"ra2-anh/art/yuri-engineer.jpg","page":"Engineer (Red Alert 2)"},"yuri-brute":{"cameo":"ra2-anh/cameo/yuri-brute.png","art":"ra2-anh/art/yuri-brute.png","page":"Brute"},"yuri-virus":{"cameo":"ra2-anh/cameo/yuri-virus.png","art":"ra2-anh/art/yuri-virus.jpg","page":"Virus"},"yuri-yuri-clone":{"cameo":"ra2-anh/cameo/yuri-yuri-clone.png","art":"ra2-anh/art/yuri-yuri-clone.png","page":"Yuri clone"},"yuri-yuri-prime":{"cameo":"ra2-anh/cameo/yuri-yuri-prime.png","art":"ra2-anh/art/yuri-yuri-prime.jpg","page":"Yuri Prime (Yuri's Revenge)"},"yuri-mcv":{"cameo":"ra2-anh/cameo/yuri-mcv.png","art":"ra2-anh/art/yuri-mcv.png","page":"Mobile construction vehicle (Red Alert 2)"},"yuri-lasher-light-tank":{"cameo":"ra2-anh/cameo/yuri-lasher-light-tank.png","art":"ra2-anh/art/yuri-lasher-light-tank.png","page":"Lasher tank"},"yuri-gattling-tank":{"cameo":"ra2-anh/cameo/yuri-gattling-tank.png","art":"ra2-anh/art/yuri-gattling-tank.png","page":"Gattling tank (Yuri's Revenge)"},"yuri-chaos-drone":{"cameo":"ra2-anh/cameo/yuri-chaos-drone.png","art":"ra2-anh/art/yuri-chaos-drone.png","page":"Chaos drone"},"yuri-magnetron":{"cameo":"ra2-anh/cameo/yuri-magnetron.png","art":"ra2-anh/art/yuri-magnetron.png","page":"Magnetron"},"yuri-mastermind":{"cameo":"ra2-anh/cameo/yuri-mastermind.png","art":"ra2-anh/art/yuri-mastermind.png","page":"Mastermind (Yuri's Revenge)"},"yuri-floating-disc":{"cameo":"ra2-anh/cameo/yuri-floating-disc.png","art":"ra2-anh/art/yuri-floating-disc.png","page":"Floating disc"},"yuri-amphibious-transport":{"cameo":"ra2-anh/cameo/yuri-amphibious-transport.png","art":"ra2-anh/art/yuri-amphibious-transport.jpg","page":"Amphibious transport (Red Alert 2)"},"yuri-boomer-submarine":{"cameo":"ra2-anh/cameo/yuri-boomer-submarine.png","art":"ra2-anh/art/yuri-boomer-submarine.png","page":"Boomer"},"yuri-genetic-mutator":{"cameo":"ra2-anh/cameo/yuri-genetic-mutator.png","art":"ra2-anh/art/yuri-genetic-mutator.png","page":"Genetic Mutator"},"yuri-psychic-dominator":{"cameo":"ra2-anh/cameo/yuri-psychic-dominator.png","art":"ra2-anh/art/yuri-psychic-dominator.png","page":"Psychic Dominator"},"tech-oil-derrick":{"art":"ra2-anh/art/tech-oil-derrick.png","page":"Tech oil derrick (Red Alert 2)"},"tech-hospital":{"art":"ra2-anh/art/tech-hospital.png","page":"Tech hospital (Red Alert 2)"},"tech-machine-shop":{"art":"ra2-anh/art/tech-machine-shop.png","page":"Tech machine shop"},"tech-airport":{"art":"ra2-anh/art/tech-airport.png","page":"Tech airport (Red Alert 2)"},"tech-secret-lab":{"art":"ra2-anh/art/tech-secret-lab.png","page":"Tech secret lab"},"tech-tech-power-plant":{"art":"ra2-anh/art/tech-tech-power-plant.png","page":"Tech Civilian Power Plant"},"tech-outpost":{"art":"ra2-anh/art/tech-outpost.png","page":"Tech outpost"},"tech-bridge-repair-hut":{},"tech-civilian-buildings":{"art":"ra2-anh/art/tech-civilian-buildings.jpg","page":"Garrisoning"}};
+const keyOf = d => (d.f + "-" + d.en).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+DATA.forEach(d => { d.key = keyOf(d); d.img = IMG[d.key] || {}; });
+
+const COUNTRY_NAME = {};
+Object.values(FACTIONS).forEach(F => F.countries.forEach(c => COUNTRY_NAME[c.id] = c.n));
+
+// ---------- icons (original illustrations, 80x60) ----------
+const P = 'fill="currentColor"';
+function icon(e) {
+  const k = e.ic || e.c;
+  const hull = 'fill="var(--hull)"';
+  const dark = 'fill="rgba(0,0,0,.45)"';
+  const lite = 'fill="rgba(255,255,255,.75)"';
+  const tank = (turret='') => `<rect x="12" y="38" width="56" height="10" rx="5" ${dark}/><g ${dark}><circle cx="18" cy="43" r="3"/><circle cx="30" cy="43" r="3"/><circle cx="42" cy="43" r="3"/><circle cx="54" cy="43" r="3"/><circle cx="62" cy="43" r="3"/></g><path d="M14 38 L20 30 H60 L66 38Z" ${hull}/>${turret}`;
+  const std = `<rect x="30" y="22" width="20" height="10" rx="3" ${hull}/><rect x="48" y="25" width="22" height="3" ${hull}/>`;
+  const man = (extra='') => `<circle cx="40" cy="14" r="5" ${hull}/><path d="M33 21 H47 L45 36 H35Z" ${hull}/><path d="M35 36 L32 52 H37 L40 40 L43 52 H48 L45 36Z" ${hull}/>${extra}`;
+  const shipHull = `<path d="M6 40 H74 L66 50 H14Z" ${hull}/><rect x="0" y="50" width="80" height="10" fill="rgba(60,140,220,.25)"/>`;
+  const S = {
+    build: `<rect x="14" y="26" width="52" height="24" ${hull}/><path d="M10 26 L40 12 L70 26Z" ${hull}/><rect x="54" y="10" width="6" height="12" ${hull}/><g ${dark}><rect x="20" y="32" width="8" height="7"/><rect x="36" y="32" width="8" height="18"/><rect x="52" y="32" width="8" height="7"/></g>`,
+    def: `<path d="M18 50 L24 34 H56 L62 50Z" ${hull}/><circle cx="40" cy="30" r="9" ${hull}/><rect x="44" y="27" width="24" height="5" ${hull}/><rect x="28" y="42" width="24" height="3" ${dark}/>`,
+    aa: `<path d="M20 50 L26 38 H54 L60 50Z" ${hull}/><g transform="rotate(-35 40 36)"><rect x="34" y="16" width="5" height="22" ${hull}/><rect x="41" y="16" width="5" height="22" ${hull}/></g><path d="M52 10 l4 -4 l1 6z" ${lite}/>`,
+    tower: `<path d="M30 52 L34 18 H46 L50 52Z" ${hull}/><path d="M40 4 L50 18 H30Z" fill="rgba(160,220,255,.95)"/><rect x="26" y="48" width="28" height="4" ${dark}/>`,
+    coil: `<rect x="36" y="18" width="8" height="34" ${hull}/><circle cx="40" cy="14" r="8" ${hull}/><path d="M48 12 L58 8 L54 16 L66 14" stroke="rgba(160,210,255,.95)" stroke-width="2" fill="none"/><g ${dark}><rect x="32" y="24" width="16" height="3"/><rect x="32" y="32" width="16" height="3"/><rect x="32" y="40" width="16" height="3"/></g>`,
+    sensor: `<rect x="36" y="26" width="8" height="26" ${hull}/><path d="M22 20 Q40 6 58 20 Q40 28 22 20Z" ${hull}/><circle cx="40" cy="18" r="4" ${lite}/>`,
+    psitower: `<path d="M32 52 L36 20 H44 L48 52Z" ${hull}/><circle cx="40" cy="16" r="7" ${hull}/><circle cx="40" cy="16" r="13" fill="none" stroke="currentColor" stroke-opacity=".5"/><circle cx="40" cy="16" r="19" fill="none" stroke="currentColor" stroke-opacity=".25"/>`,
+    bunker: `<path d="M14 50 Q40 18 66 50Z" ${hull}/><rect x="30" y="38" width="20" height="5" ${dark}/>`,
+    inf: man(`<rect x="44" y="24" width="18" height="3" ${hull}/>`),
+    sniper: man(`<rect x="44" y="23" width="28" height="2.5" ${hull}/><rect x="52" y="20" width="6" height="3" ${hull}/>`),
+    spy: man(`<path d="M32 10 H48 L46 6 H34Z" ${hull}/><rect x="30" y="10" width="20" height="2" ${hull}/>`),
+    seal: man(`<rect x="34" y="11" width="12" height="4" ${lite}/>`),
+    hero: man(`<path d="M40 0 l2 5 h5 l-4 3 l2 5 l-5 -3 l-5 3 l2 -5 l-4 -3 h5z" fill="#ffd34d"/><rect x="44" y="24" width="16" height="3" ${hull}/>`),
+    chrono: man(`<circle cx="40" cy="30" r="22" fill="none" stroke="rgba(140,220,255,.7)" stroke-dasharray="3 3"/>`),
+    tesla: man(`<path d="M48 24 L56 20 L52 28 L64 24" stroke="rgba(160,210,255,.95)" stroke-width="2" fill="none"/>`),
+    ivan: man(`<circle cx="56" cy="28" r="6" ${hull}/><path d="M56 22 q4 -6 8 -4" stroke="#ffb04d" stroke-width="2" fill="none"/>`),
+    deso: man(`<rect x="44" y="24" width="18" height="4" ${hull}/><circle cx="66" cy="26" r="5" fill="rgba(140,255,90,.8)"/>`),
+    psi: man(`<circle cx="40" cy="14" r="10" fill="none" stroke="currentColor" stroke-opacity=".6"/><circle cx="40" cy="14" r="16" fill="none" stroke="currentColor" stroke-opacity=".3"/>`),
+    brute: `<circle cx="40" cy="12" r="6" ${hull}/><path d="M24 20 H56 L52 38 H28Z" ${hull}/><circle cx="20" cy="30" r="6" ${hull}/><circle cx="60" cy="30" r="6" ${hull}/><path d="M30 38 L26 54 H34 L40 42 L46 54 H54 L50 38Z" ${hull}/>`,
+    rocketeer: man(`<rect x="28" y="20" width="5" height="12" ${hull}/><path d="M28 32 l2.5 10 l2.5 -10z" fill="#ffb04d"/>`),
+    para: `<path d="M18 22 Q40 0 62 22Z" ${hull}/><path d="M18 22 L36 38 M62 22 L44 38 M40 22 V36" stroke="currentColor" stroke-opacity=".6"/><circle cx="40" cy="40" r="4" ${hull}/><path d="M36 44 H44 L43 54 H37Z" ${hull}/>`,
+    dog: `<path d="M16 34 Q20 26 34 28 H52 L60 20 L66 22 L64 30 L58 34 L56 46 H52 L50 38 H32 L28 46 H24 L24 38 Q16 40 16 34Z" ${hull}/>`,
+    veh: tank(std),
+    td: `<rect x="10" y="38" width="60" height="10" rx="5" ${dark}/><path d="M12 38 L18 26 H62 L68 38Z" ${hull}/><rect x="56" y="28" width="22" height="4" ${hull}/>`,
+    prism: tank(`<rect x="32" y="20" width="16" height="10" ${hull}/><path d="M40 6 L48 20 H32Z" fill="rgba(160,220,255,.95)"/>`),
+    mirage: tank(std) + `<path d="M40 4 Q60 10 50 22 H30 Q20 10 40 4Z" fill="rgba(110,200,110,.55)"/>`,
+    apoc: `<rect x="6" y="38" width="68" height="12" rx="6" ${dark}/><path d="M8 38 L16 28 H64 L72 38Z" ${hull}/><rect x="26" y="18" width="26" height="12" rx="3" ${hull}/><rect x="50" y="19" width="26" height="3" ${hull}/><rect x="50" y="25" width="26" height="3" ${hull}/><rect x="28" y="12" width="10" height="6" ${hull}/>`,
+    teslatank: tank(`<circle cx="40" cy="24" r="8" ${hull}/><path d="M48 22 L58 16 L54 26 L68 20" stroke="rgba(160,210,255,.95)" stroke-width="2" fill="none"/>`),
+    v3: tank(`<g transform="rotate(-25 40 30)"><rect x="24" y="24" width="34" height="5" rx="2" ${hull}/><path d="M58 24 l6 2.5 l-6 2.5z" ${hull}/></g>`),
+    ifv: tank(`<rect x="30" y="22" width="18" height="9" rx="2" ${hull}/><g transform="rotate(-30 46 26)"><rect x="44" y="22" width="16" height="3" ${hull}/><rect x="44" y="27" width="16" height="3" ${hull}/></g>`),
+    robot: tank(`<rect x="30" y="20" width="20" height="10" rx="2" ${hull}/><rect x="48" y="23" width="20" height="3" ${hull}/><circle cx="36" cy="25" r="2" fill="#ff5a4d"/>`),
+    fortress: `<rect x="6" y="38" width="68" height="12" rx="6" ${dark}/><path d="M8 38 V22 H72 V38Z" ${hull}/><g ${dark}><rect x="14" y="26" width="8" height="4"/><rect x="28" y="26" width="8" height="4"/><rect x="42" y="26" width="8" height="4"/><rect x="56" y="26" width="8" height="4"/></g><rect x="30" y="14" width="20" height="8" ${hull}/>`,
+    mcv: `<rect x="8" y="40" width="64" height="10" rx="5" ${dark}/><path d="M8 40 V24 H50 L60 30 H72 V40Z" ${hull}/><rect x="16" y="16" width="26" height="8" ${hull}/><rect x="52" y="30" width="8" height="5" ${dark}/>`,
+    miner: `<rect x="10" y="40" width="60" height="10" rx="5" ${dark}/><path d="M10 40 V26 H50 V18 H66 L70 26 V40Z" ${hull}/><path d="M14 26 L22 16 H44 L48 26Z" fill="rgba(240,190,60,.8)"/>`,
+    hover: `<path d="M8 42 Q40 54 72 42 L66 28 H14Z" ${hull}/><rect x="20" y="20" width="40" height="8" ${hull}/><path d="M6 46 Q40 60 74 46" stroke="rgba(120,190,255,.7)" stroke-width="2" fill="none"/>`,
+    drone: `<circle cx="40" cy="28" r="9" ${hull}/><g stroke="var(--hull)" stroke-width="3" fill="none"><path d="M32 26 L18 18 L12 30"/><path d="M32 32 L18 40 L12 50"/><path d="M48 26 L62 18 L68 30"/><path d="M48 32 L62 40 L68 50"/></g><circle cx="40" cy="28" r="3" fill="#ff5a4d"/>`,
+    truck: `<rect x="10" y="44" width="60" height="4" ${dark}/><circle cx="22" cy="48" r="5" ${dark}/><circle cx="58" cy="48" r="5" ${dark}/><rect x="10" y="24" width="38" height="20" ${hull}/><path d="M48 30 H62 L70 38 V44 H48Z" ${hull}/><circle cx="29" cy="34" r="6" fill="#ffd34d"/><path d="M29 28 v12 M23 34 h12" stroke="rgba(0,0,0,.6)" stroke-width="2"/>`,
+    magnet: tank(`<rect x="36" y="14" width="6" height="16" ${hull}/><path d="M28 4 V12 Q28 18 39 18 Q50 18 50 12 V4 H45 V12 Q45 14 39 14 Q33 14 33 12 V4Z" ${hull}/>`),
+    brain: tank(`<ellipse cx="40" cy="20" rx="14" ry="10" fill="rgba(255,150,200,.8)"/><path d="M30 20 q5 -6 10 0 q5 6 10 0" stroke="rgba(0,0,0,.4)" fill="none"/>`),
+    disc: `<ellipse cx="40" cy="32" rx="32" ry="8" ${hull}/><ellipse cx="40" cy="26" rx="14" ry="8" ${hull}/><path d="M30 40 L24 56 M40 40 V58 M50 40 L56 56" stroke="rgba(180,140,255,.7)" stroke-width="2"/>`,
+    jet: `<path d="M40 4 L44 20 L72 34 V38 L44 32 L42 48 L52 54 V56 H28 V54 L38 48 L36 32 L8 38 V34 L36 20Z" ${hull}/>`,
+    heli: `<rect x="6" y="12" width="68" height="3" ${hull}/><rect x="38" y="15" width="4" height="7" ${hull}/><path d="M18 22 H52 Q62 22 62 32 Q62 40 52 40 H24 Q16 40 16 32Z" ${hull}/><rect x="60" y="28" width="16" height="4" ${hull}/><rect x="20" y="44" width="32" height="3" ${hull}/>`,
+    blimp: `<ellipse cx="40" cy="22" rx="34" ry="14" ${hull}/><path d="M6 22 L0 12 V32Z" ${hull}/><rect x="28" y="36" width="24" height="8" ${hull}/><g ${dark}><rect x="12" y="20" width="56" height="2"/></g><circle cx="34" cy="52" r="3" ${dark}/><circle cx="46" cy="56" r="3" ${dark}/>`,
+    air: `<path d="M40 4 L44 20 L72 34 V38 L44 32 L42 48 L52 54 V56 H28 V54 L38 48 L36 32 L8 38 V34 L36 20Z" ${hull}/>`,
+    ship: shipHull + `<rect x="24" y="30" width="24" height="10" ${hull}/><rect x="32" y="20" width="10" height="10" ${hull}/><rect x="48" y="33" width="20" height="3" ${hull}/>`,
+    naval: shipHull + `<rect x="24" y="30" width="24" height="10" ${hull}/>`,
+    carrier: `<path d="M2 38 H78 L70 50 H10Z" ${hull}/><rect x="0" y="50" width="80" height="10" fill="rgba(60,140,220,.25)"/><rect x="52" y="26" width="10" height="12" ${hull}/><path d="M14 30 l6 -3 v6z M26 24 l6 -3 v6z" ${lite}/>`,
+    sub: `<rect x="0" y="30" width="80" height="30" fill="rgba(60,140,220,.25)"/><ellipse cx="40" cy="40" rx="32" ry="7" ${hull}/><rect x="34" y="28" width="10" height="8" ${hull}/><path d="M72 40 L80 34 V46Z" ${hull}/>`,
+    dolphin: `<rect x="0" y="42" width="80" height="18" fill="rgba(60,140,220,.25)"/><path d="M8 40 Q30 14 62 26 L74 22 L70 32 Q50 38 40 34 Q24 34 14 46Z" ${hull}/><path d="M38 24 L44 14 L48 26Z" ${hull}/>`,
+    squid: `<rect x="0" y="30" width="80" height="30" fill="rgba(60,140,220,.25)"/><ellipse cx="40" cy="18" rx="12" ry="14" ${hull}/><g stroke="var(--hull)" stroke-width="4" fill="none" stroke-linecap="round"><path d="M30 28 Q22 42 14 44"/><path d="M36 30 Q34 46 26 54"/><path d="M44 30 Q46 46 54 54"/><path d="M50 28 Q58 42 66 44"/></g>`,
+    sw: `<circle cx="40" cy="30" r="10" ${hull}/><circle cx="40" cy="30" r="18" fill="none" stroke="currentColor" stroke-opacity=".55"/><circle cx="40" cy="30" r="26" fill="none" stroke="currentColor" stroke-opacity=".25"/>`,
+    chronosw: `<rect x="18" y="44" width="44" height="8" ${hull}/><circle cx="40" cy="26" r="16" fill="none" stroke="var(--hull)" stroke-width="4"/><ellipse cx="40" cy="26" rx="16" ry="6" fill="none" stroke="rgba(140,220,255,.9)" stroke-width="2"/><circle cx="40" cy="26" r="5" fill="rgba(140,220,255,.95)"/>`,
+    storm: `<path d="M14 24 Q14 12 28 14 Q34 4 48 10 Q64 8 64 22 Q72 26 64 32 H18 Q8 30 14 24Z" ${hull}/><path d="M38 32 L30 46 H38 L32 58 L50 40 H42 L48 32Z" fill="#ffe36a"/>`,
+    curtain: `<rect x="16" y="46" width="48" height="8" ${hull}/><path d="M22 46 V18 Q40 4 58 18 V46Z" ${hull}/><path d="M28 44 V22 Q40 12 52 22 V44Z" fill="rgba(255,90,70,.6)"/>`,
+    nuke: `<rect x="22" y="46" width="36" height="8" ${hull}/><path d="M34 46 V18 L40 6 L46 18 V46Z" ${hull}/><circle cx="40" cy="32" r="7" fill="#ffd34d"/><path d="M40 32 L36 26 A7 7 0 0 1 44 26Z M40 32 L47 33 A7 7 0 0 1 43 38Z M40 32 L37 38 A7 7 0 0 1 33 33Z" fill="rgba(0,0,0,.7)"/>`,
+    mutate: `<rect x="18" y="46" width="44" height="8" ${hull}/><path d="M30 46 V14 M50 46 V14" stroke="var(--hull)" stroke-width="4"/><path d="M30 16 Q40 22 50 16 M30 26 Q40 32 50 26 M30 36 Q40 42 50 36" stroke="rgba(140,255,90,.85)" stroke-width="2.5" fill="none"/>`,
+    dominator: `<rect x="20" y="46" width="40" height="8" ${hull}/><path d="M30 46 L36 12 H44 L50 46Z" ${hull}/><circle cx="40" cy="10" r="6" fill="rgba(200,140,255,.95)"/><circle cx="40" cy="10" r="14" fill="none" stroke="currentColor" stroke-opacity=".5"/>`,
+    grinder: `<rect x="14" y="24" width="52" height="26" ${hull}/><g ${dark}><path d="M20 24 L26 14 L32 24Z"/><path d="M34 24 L40 14 L46 24Z"/><path d="M48 24 L54 14 L60 24Z"/></g><rect x="30" y="34" width="20" height="16" ${dark}/>`,
+    oil: `<path d="M30 52 L40 8 L50 52Z" fill="none" stroke="var(--hull)" stroke-width="4"/><path d="M33 38 H47 M36 24 H44" stroke="var(--hull)" stroke-width="3"/><path d="M58 30 q4 8 0 12 q-4 -4 0 -12z" fill="#222"/>`,
+    hospital: `<rect x="14" y="20" width="52" height="30" ${hull}/><rect x="35" y="25" width="10" height="20" fill="#e5392f"/><rect x="30" y="30" width="20" height="10" fill="#e5392f"/>`,
+    civ: `<rect x="12" y="26" width="24" height="26" ${hull}/><rect x="40" y="14" width="28" height="38" ${hull}/><g ${dark}><rect x="16" y="30" width="6" height="6"/><rect x="26" y="30" width="6" height="6"/><rect x="45" y="20" width="6" height="6"/><rect x="57" y="20" width="6" height="6"/><rect x="45" y="32" width="6" height="6"/><rect x="57" y="32" width="6" height="6"/></g>`,
+  };
+  const body = S[k] || S[e.c] || S.sw;
+  return `<svg viewBox="0 0 80 60" role="img" aria-label="${e.en}" style="--hull:color-mix(in srgb, var(--c) 70%, #cfd6dc);color:var(--c)">${body}</svg>`;
+}
+
+// simplified flags, 30x20
+const FLAGS = {
+  usa: `<rect width="30" height="20" fill="#fff"/>${[0,2,4,6,8,10,12].map(i => `<rect y="${i*20/13}" width="30" height="${20/13}" fill="#b22234"/>`).join("")}<rect width="13" height="${7*20/13}" fill="#3c3b6e"/>`,
+  korea: `<rect width="30" height="20" fill="#fff"/><path d="M11 10a4 4 0 0 1 8 0z" fill="#cd2e3a"/><path d="M11 10a4 4 0 0 0 8 0z" fill="#0047a0"/><g stroke="#000" stroke-width="1"><path d="M4 4l3 3M23 13l3 3M4 16l3-3M23 7l3-3"/></g>`,
+  france: `<rect width="10" height="20" fill="#0055a4"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#ef4135"/>`,
+  germany: `<rect width="30" height="7" fill="#000"/><rect y="6.6" width="30" height="7" fill="#dd0000"/><rect y="13.3" width="30" height="6.7" fill="#ffce00"/>`,
+  uk: `<rect width="30" height="20" fill="#012169"/><path d="M0 0L30 20M30 0L0 20" stroke="#fff" stroke-width="4"/><path d="M0 0L30 20M30 0L0 20" stroke="#c8102e" stroke-width="1.5"/><path d="M15 0v20M0 10h30" stroke="#fff" stroke-width="6"/><path d="M15 0v20M0 10h30" stroke="#c8102e" stroke-width="3.5"/>`,
+  russia: `<rect width="30" height="7" fill="#fff"/><rect y="6.6" width="30" height="7" fill="#0039a6"/><rect y="13.3" width="30" height="6.7" fill="#d52b1e"/>`,
+  cuba: `<rect width="30" height="20" fill="#fff"/>${[0,2,4].map(i => `<rect y="${i*4}" width="30" height="4" fill="#002a8f"/>`).join("")}<path d="M0 0L14 10L0 20z" fill="#cf142b"/><circle cx="5" cy="10" r="2" fill="#fff"/>`,
+  libya: `<rect width="30" height="20" fill="#239e46"/>`,
+  iraq: `<rect width="30" height="7" fill="#ce1126"/><rect y="6.6" width="30" height="7" fill="#fff"/><rect y="13.3" width="30" height="6.7" fill="#000"/><g fill="#007a3d"><circle cx="9" cy="10" r="1.2"/><circle cx="15" cy="10" r="1.2"/><circle cx="21" cy="10" r="1.2"/></g>`,
+};
+function flagSVG(id) {
+  return `<svg class="flag" viewBox="0 0 30 20" preserveAspectRatio="none" aria-hidden="true">${FLAGS[id] || ""}</svg>`;
+}
+
+const state = { f: "allied", cat: "all", country: null, q: "", yr: true };
+try { const s = JSON.parse(localStorage.getItem("ra2-state") || "null"); if (s && FACTIONS[s.f]) { state.f = s.f; state.yr = s.yr !== false; } } catch (_) {}
+function save() { try { localStorage.setItem("ra2-state", JSON.stringify({ f: state.f, yr: state.yr })); } catch (_) {} }
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[ch]));
+
+function renderTabs() {
+  $("tabs").innerHTML = Object.entries(FACTIONS).map(([k, F]) => {
+    const n = DATA.filter(d => d.f === k).length;
+    return `<button class="tab" role="tab" id="tab-${k}" data-f="${k}" aria-selected="${state.f === k}"><span class="tn">${F.name}</span><span class="ts">${F.sub} · ${n} mục</span></button>`;
+  }).join("");
+  $("tabs").querySelectorAll(".tab").forEach(b => b.onclick = () => {
+    state.f = b.dataset.f; state.country = null; state.cat = "all"; save(); renderAll();
+  });
+}
+
+function renderCountries() {
+  const F = FACTIONS[state.f];
+  $("factionNote").innerHTML = F.note;
+  const g = F.guide;
+  $("guide").innerHTML = `
+    <div class="gbox good"><h3>Điểm mạnh</h3><ul>${g.good.map(x => `<li>${x}</li>`).join("")}</ul></div>
+    <div class="gbox bad"><h3>Điểm yếu</h3><ul>${g.bad.map(x => `<li>${x}</li>`).join("")}</ul></div>
+    <div class="gbox play"><h3>Cách chơi</h3><ol>${g.play.map(x => `<li>${x}</li>`).join("")}</ol></div>
+    <div class="gbox counter"><h3>Cách khắc chế</h3><ul>${g.counter.map(x => `<li>${x}</li>`).join("")}</ul></div>`;
+  $("countries").innerHTML = F.countries.map(c =>
+    `<button class="country" id="c-${c.id}" data-c="${c.id}" aria-pressed="${state.country === c.id}">${flagSVG(c.id)}<div><b>${c.n}</b><span>${c.u}</span><span class="tip">${c.t}</span></div></button>`
+  ).join("");
+  $("countries").hidden = !F.countries.length;
+  $("countryHead").hidden = !F.countries.length;
+  $("countries").querySelectorAll(".country").forEach(b => b.onclick = () => {
+    state.country = state.country === b.dataset.c ? null : b.dataset.c; renderAll();
+  });
+}
+
+function pool() {
+  return DATA.filter(d => d.f === state.f && (state.yr || !d.yr) && (!d.ra2 || !state.yr || true));
+}
+
+function renderCats() {
+  const base = pool();
+  const all = [["all", "Tất cả"], ...CATS].map(([k, label]) => {
+    const n = k === "all" ? base.length : base.filter(d => d.c === k).length;
+    if (k !== "all" && !n) return "";
+    return `<button class="chip" id="cat-${k}" data-k="${k}" aria-pressed="${state.cat === k}">${label} <span class="n">${n}</span></button>`;
+  }).join("");
+  $("cats").innerHTML = all;
+  $("cats").querySelectorAll(".chip").forEach(b => b.onclick = () => { state.cat = b.dataset.k; renderAll(); });
+}
+
+function card(d) {
+  const badges = [];
+  if (d.ct) badges.push(`<span class="b ct">Riêng ${COUNTRY_NAME[d.ct]}</span>`);
+  if (d.yr && d.f !== "yuri") badges.push(`<span class="b yr">Yuri's Revenge</span>`);
+  if (d.ra2) badges.push(`<span class="b ra2">Chỉ RA2 gốc</span>`);
+  (d.r || []).forEach(r => badges.push(`<span class="b role">${ROLE[r]}</span>`));
+  const cost = d.cost ? `<div class="cost">$${d.cost.toLocaleString("en-US")}</div>` : `<div class="cost free">Miễn phí</div>`;
+  const wiki = wikiUrl(d);
+  const src = d.img.cameo || d.img.art;
+  const pic = src
+    ? `<button class="cameo real" data-k="${d.key}" title="Xem ảnh lớn"><img src="${src}" alt="${esc(d.en)}" loading="lazy" onerror="this.parentNode.outerHTML='<div class=&quot;cameo&quot;>'+ICONS['${d.key}']+'</div>'"></button>`
+    : `<div class="cameo">${icon(d)}</div>`;
+  return `<article class="card" data-f="${d.f}">
+    <div>${pic}${cost}</div>
+    <div class="body">
+      <div class="nm"><h3>${esc(d.en)}</h3><span class="vn">${esc(d.vn)}</span></div>
+      <div class="badges">${badges.join("")}</div>
+      <p class="desc">${esc(d.d)}</p>
+      <dl class="kv">
+        <dt>Yêu cầu</dt><dd>${esc(d.req)}</dd>
+        ${d.s ? `<dt>Mạnh với</dt><dd class="good">${esc(d.s)}</dd>` : ""}
+        ${d.w ? `<dt>Yếu với</dt><dd class="bad">${esc(d.w)}</dd>` : ""}
+      </dl>
+      <a class="more" href="${wiki}" target="_blank" rel="noopener">Ảnh &amp; thông tin gốc ↗</a>
+    </div>
+  </article>`;
+}
+
+function renderList() {
+  const q = state.q.trim().toLowerCase();
+  let items = pool();
+  if (state.cat !== "all") items = items.filter(d => d.c === state.cat);
+  if (state.country) items = items.filter(d => d.ct === state.country);
+  if (q) items = DATA.filter(d => (state.yr || !d.yr) && (d.en + " " + d.vn).toLowerCase().includes(q));
+  $("count").textContent = q
+    ? `${items.length} kết quả cho "${state.q}" ở mọi phe`
+    : state.country
+      ? `Đơn vị riêng của ${COUNTRY_NAME[state.country]} · bấm lại cờ để bỏ lọc`
+      : `${items.length} mục`;
+  if (!items.length) {
+    $("out").innerHTML = `<div class="empty">Không có mục nào khớp. Thử bỏ bớt bộ lọc hoặc bật "Gồm Yuri's Revenge".</div>`;
+    return;
+  }
+  const groups = CATS.map(([k, label]) => [label, items.filter(d => d.c === k)]).filter(g => g[1].length);
+  $("out").innerHTML = groups.map(([label, list]) =>
+    `<h2 class="section-h">${label}</h2><div class="grid">${list.map(card).join("")}</div>`).join("");
+}
+
+const ICONS = {};
+DATA.forEach(d => { ICONS[d.key] = icon(d); });
+function wikiUrl(d) {
+  return d.img.page
+    ? "https://cnc.fandom.com/wiki/" + encodeURIComponent(d.img.page.replace(/ /g, "_"))
+    : "https://cnc.fandom.com/wiki/Special:Search?query=" + encodeURIComponent(d.en + (d.yr ? " Yuri's Revenge" : " Red Alert 2"));
+}
+function openLightbox(key) {
+  const d = DATA.find(x => x.key === key);
+  if (!d) return;
+  $("lbTitle").textContent = d.en;
+  $("lbSub").textContent = d.vn + (d.cost ? " · $" + d.cost.toLocaleString("en-US") : "");
+  $("lbCam").hidden = !d.img.cameo;
+  if (d.img.cameo) $("lbCam").src = d.img.cameo;
+  $("lbArt").src = d.img.art || d.img.cameo;
+  $("lbLink").href = wikiUrl(d);
+  $("lb").showModal();
+}
+$("out").addEventListener("click", e => {
+  const b = e.target.closest(".cameo.real");
+  if (b) openLightbox(b.dataset.k);
+});
+$("lbClose").onclick = () => $("lb").close();
+$("lb").addEventListener("click", e => { if (e.target === $("lb")) $("lb").close(); });
+
+function renderAll() {
+  document.body.dataset.f = state.f;
+  renderTabs(); renderCountries(); renderCats(); renderList();
+}
+
+$("q").addEventListener("input", e => { state.q = e.target.value; renderList(); });
+$("yrToggle").checked = state.yr;
+$("yrToggle").addEventListener("change", e => { state.yr = e.target.checked; save(); renderAll(); });
+renderAll();
+</script>
+
+</body>
+</html>
